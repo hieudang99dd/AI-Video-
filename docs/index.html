@@ -161,11 +161,12 @@
       background: #0b111e;
       border-bottom: 1px solid var(--border);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       padding: 6px 16px;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
       user-select: none;
+      min-width: 0;
     }
     .step-item {
       display: flex;
@@ -418,19 +419,22 @@
     .ws3-upper-grid {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: minmax(0, 1fr) 340px;
       overflow: hidden;
       border-bottom: 1px solid var(--border);
+      min-width: 0;
     }
 
     /* KHUNG PLAYER PHÓNG TO */
     .ws3-player-area {
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
       gap: 10px;
       background: #080c16;
       overflow-y: auto;
+      overflow-x: hidden;
+      min-width: 0;
     }
     .player-screen-box {
       background: #000;
@@ -438,6 +442,8 @@
       border: 1px solid var(--border);
       overflow: hidden;
       aspect-ratio: 16/9;
+      width: 100%;
+      max-width: 100%;
       position: relative;
       box-shadow: 0 4px 30px rgba(0,0,0,0.8);
       max-height: 480px;
@@ -472,6 +478,9 @@
       flex-direction: column;
       gap: 12px;
       overflow-y: auto;
+      width: 340px;
+      min-width: 300px;
+      flex-shrink: 0;
     }
     .prop-header { font-size: 13px; font-weight: 700; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; }
     .prop-row { display: flex; flex-direction: column; gap: 4px; }
@@ -599,6 +608,111 @@
     .modal-card {
       background: #0e1626; border: 1px solid #0284c7; border-radius: 12px; width: 450px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     }
+
+    /* MODAL THƯ VIỆN MẪU DỰ ÁN (DANH SÁCH MẪU VIDEO) */
+    .template-catalog-dialog {
+      background: #0d1424;
+      border: 1px solid #0284c7;
+      border-radius: 14px;
+      width: 960px;
+      max-width: 95vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .catalog-header {
+      padding: 18px 24px;
+      background: #111a2d;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .catalog-header h2 { font-size: 17px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .catalog-header p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .btn-close-modal {
+      background: #1e293b; border: 1px solid var(--border); color: #cbd5e1; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-close-modal:hover { background: #334155; color: #fff; }
+
+    .catalog-filter-bar {
+      padding: 12px 24px;
+      background: #090e1a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .catalog-filter-tabs { display: flex; gap: 6px; }
+    .cat-tab {
+      padding: 5px 12px; border-radius: 6px; background: #131c2e; border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 11.5px; cursor: pointer; font-weight: 600; transition: all 0.15s;
+    }
+    .cat-tab.active { background: #1e3a5f; color: #38bdf8; border-color: #0284c7; }
+
+    .catalog-grid {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      overflow-y: auto;
+      flex: 1;
+      background: #080c16;
+    }
+    .tpl-card {
+      background: #0f1728;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .tpl-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+    }
+    .tpl-thumb {
+      height: 120px; background: #000; position: relative; overflow: hidden;
+    }
+    .tpl-thumb canvas, .tpl-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tpl-tag-badge {
+      position: absolute; top: 8px; right: 8px; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;
+    }
+    .tag-green { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
+    .tag-blue { background: #1e3a5f; color: #7dd3fc; border: 1px solid #0284c7; }
+    .tag-purple { background: #3b0764; color: #d8b4fe; border: 1px solid #6b21a8; }
+    .tag-orange { background: #451a03; color: #fed7aa; border: 1px solid #d97706; }
+    .tag-teal { background: #042f2e; color: #99f6e4; border: 1px solid #0d9488; }
+
+    .tpl-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    .tpl-title { font-size: 13px; font-weight: 800; color: #fff; line-height: 1.3; }
+    .tpl-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; flex: 1; }
+    .tpl-meta-row {
+      display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-dim); border-top: 1px solid #141d2e; padding-top: 8px; margin-top: 4px;
+    }
+    .btn-apply-tpl {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      border: none; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 11.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; transition: all 0.15s;
+    }
+    .btn-apply-tpl:hover { background: linear-gradient(135deg, #0369a1, #0284c7); }
   </style>
 </head>
 <body>
@@ -626,7 +740,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         <span>Quản lý dự án</span>
       </li>
-      <li class="nav-item" onclick="GlobalStore.loadStandardCivilPackage()">
+      <li class="nav-item" onclick="GlobalStore.openTemplateModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         <span>Thư viện mẫu</span>
       </li>
@@ -648,17 +762,17 @@
         <button class="btn-back" onclick="GlobalStore.prevStep()" title="Quay lại bước trước">←</button>
         <div class="proj-info">
           <h2>
-            Dự án: Cao tốc Bắc - Nam (Km10-Km35)
+            <span id="headerProjectName">Dự án: Cao tốc Bắc - Nam (Km10-Km35)</span>
             <span class="badge-status">Đang xử lý</span>
           </h2>
-          <p>Tạo video thuyết minh từ hồ sơ thiết kế Civil 3D & InfraWorks</p>
+          <p id="headerProjectSub">Tạo video thuyết minh từ hồ sơ thiết kế Civil 3D & InfraWorks</p>
         </div>
       </div>
       <div class="header-right">
         <div class="badge-auto-saved-header" id="autoSavedBadge">
           <span>☁️ Đã lưu tự động</span>
         </div>
-        <button class="header-btn" onclick="GlobalStore.loadStandardCivilPackage()">
+        <button class="header-btn" onclick="GlobalStore.openTemplateModal()">
           <span>🎬 Mẫu video</span>
         </button>
         <button class="header-btn" onclick="alert('Lịch sử: Đã lưu bản nháp lúc ' + new Date().toLocaleTimeString())">
@@ -722,7 +836,8 @@
             <div class="ws1-upload-sub">Hỗ trợ đầy đủ dữ liệu xuất từ Autodesk Civil 3D (Bình đồ, Trắc dọc, Mặt cắt) và Autodesk InfraWorks (Phối cảnh 3D)</div>
             <div class="ws1-btn-group">
               <button class="btn-upload-action" onclick="event.stopPropagation(); document.getElementById('fileUploadInput').click()">📁 Chọn tệp từ máy tính</button>
-              <button class="btn-upload-demo" onclick="event.stopPropagation(); GlobalStore.loadStandardCivilPackage()">✨ Nạp 12 Bản Vẽ Mẫu Civil 3D / InfraWorks</button>
+              <button class="btn-upload-demo" onclick="event.stopPropagation(); GlobalStore.openTemplateModal()">🎛️ Thư Viện Mẫu Video (Danh Sách Mẫu)</button>
+              <button class="btn-upload-demo" style="background:#131c2e; border-color:#334155; color:#94a3b8;" onclick="event.stopPropagation(); GlobalStore.loadStandardCivilPackage()">⚡ Mẫu Mặc Định (Cao tốc)</button>
             </div>
           </div>
 
@@ -1134,6 +1249,33 @@
         </a>
       </div>
       <button onclick="document.getElementById('renderModal').style.display='none'" style="margin-top:12px; width:100%; padding:8px; background:#1e293b; color:#cbd5e1; border:1px solid #334155; border-radius:6px; cursor:pointer;">Đóng</button>
+    </div>
+  </div>
+
+  <!-- MODAL THƯ VIỆN MẪU DỰ ÁN (DANH SÁCH MẪU VIDEO) -->
+  <div class="modal-overlay" id="templateCatalogModal" onclick="if(event.target===this) GlobalStore.closeTemplateModal()">
+    <div class="template-catalog-dialog">
+      <div class="catalog-header">
+        <div>
+          <h2>🎛️ Thư Viện Mẫu Video Kỹ Thuật (Danh Sách Mẫu Dự Án)</h2>
+          <p>Chọn bộ kịch bản và hồ sơ mẫu chuẩn Autodesk Civil 3D & InfraWorks để áp dụng ngay vào dự án</p>
+        </div>
+        <button class="btn-close-modal" onclick="GlobalStore.closeTemplateModal()">✕</button>
+      </div>
+
+      <div class="catalog-filter-bar">
+        <div class="catalog-filter-tabs">
+          <div class="cat-tab active" onclick="GlobalStore.filterTemplateCatalog('all', this)">Tất cả (6)</div>
+          <div class="cat-tab" onclick="GlobalStore.filterTemplateCatalog('caotoc', this)">Đường cao tốc</div>
+          <div class="cat-tab" onclick="GlobalStore.filterTemplateCatalog('nutgiao', this)">Nút giao & Cầu vượt</div>
+          <div class="cat-tab" onclick="GlobalStore.filterTemplateCatalog('dothi', this)">Đô thị & Thoát nước</div>
+        </div>
+        <span style="font-size:11px; color:var(--accent-green); font-weight:700;">
+          ✓ 100% Bảo toàn hình học công trình
+        </span>
+      </div>
+
+      <div class="catalog-grid" id="templateCatalogGrid"></div>
     </div>
   </div>
 
@@ -1886,6 +2028,407 @@ const GlobalStore = {
     ctx.fillText(asset.title || asset.name, 45, 60);
     ctx.fillStyle = "#94a3b8"; ctx.font = "12px sans-serif";
     ctx.fillText("HỒ SƠ THIẾT KẾ KỸ THUẬT THI CÔNG - AUTODESK CIVIL 3D / INFRAWORKS", 45, 82);
+  },
+
+  // ========================================================
+  // THƯ VIỆN MẪU DỰ ÁN (DANH SÁCH MẪU VIDEO KỸ THUẬT)
+  // ========================================================
+  currentTemplateCategory: "all",
+
+  PROJECT_TEMPLATES: [
+    {
+      id: "tpl_caotoc",
+      name: "Tuyến Cao Tốc Bắc - Nam (Km10 - Km35)",
+      category: "caotoc",
+      categoryName: "Đường cao tốc",
+      badge: "Phổ biến nhất",
+      badgeClass: "tag-blue",
+      duration: 47,
+      shotsCount: 8,
+      resolution: "1080p @ 30fps",
+      standards: "TCVN 5729:2012 (100km/h)",
+      desc: "Hồ sơ thiết kế kỹ thuật tuyến cao tốc 4 làn xe hoàn chỉnh, bao gồm bình đồ tim tuyến, nút giao liên thông IC-01, trắc dọc độ dốc i=2.5% và mặt cắt ngang B=24.5m.",
+      assets: [
+        { id: "bd_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ tuyến Km0-Km10.dwg", size: "14.2 MB", res: "3840x2160", progress: 100, drawType: "alignment", title: "BÌNH ĐỒ TUYẾN CHÍNH - KM0+000 ĐẾN KM10+000" },
+        { id: "bd_2", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ nút giao IC-01.dwg", size: "18.5 MB", res: "3840x2160", progress: 100, drawType: "interchange", title: "BÌNH ĐỒ NÚT GIAO LIÊN THÔNG IC-01" },
+        { id: "bd_3", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ hướng tuyến Km10-Km25.dwg", size: "16.1 MB", res: "3840x2160", progress: 100, drawType: "corridor", title: "BÌNH ĐỒ HƯỚNG TUYẾN KM10+000 - KM25+000" },
+        { id: "bd_4", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ hoàn công Km25-Km35.dwg", size: "12.8 MB", res: "3840x2160", progress: 100, drawType: "alignment", title: "BÌNH ĐỒ TỔNG THỂ CUỐI TUYẾN KM35+000" },
+        { id: "td_1", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc thiết kế Km0-Km12.dwg", size: "9.4 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC ĐƯỜNG ĐỎ & CAO ĐỘ ĐÀO ĐẮP" },
+        { id: "td_2", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc đoạn đèo dốc Km12-Km24.dwg", size: "11.2 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC ĐOẠN ĐỘ DỐC DỌC I = 3.5%" },
+        { id: "td_3", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc cầu vượt sông Km24-Km35.dwg", size: "8.7 MB", res: "3840x1080", progress: 100, drawType: "bridge_profile", title: "TRẮC DỌC CÔNG TRÌNH CẦU VƯỢT SÔNG" },
+        { id: "mc_1", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN điển hình B=24.5m.dwg", size: "6.5 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT NGANG ĐIỂN HÌNH B = 24.5M" },
+        { id: "mc_2", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN nền đắp cao gia cố.dwg", size: "7.1 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT NỀN ĐẮP & KÈ GIA CỐ MÁI TALUY" },
+        { id: "mc_3", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN nút giao khác mức.dwg", size: "8.0 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT CÁC NHÁNH RAMP NÚT GIAO" },
+        { id: "pc_1", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Phối cảnh 3D nút giao IC.png", size: "22.4 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D NÚT GIAO AUTODESK INFRAWORKS" },
+        { id: "pc_2", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Toàn cảnh tuyến cao tốc.png", size: "25.0 MB", res: "3840x2160", progress: 100, drawType: "highway_3d", title: "PHỐI CẢNH TOÀN CẢNH TUYẾN CAO TỐC BẮC NAM" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng quan", duration: 6, assetId: "bd_1", motion: "zoom_in", transition: "crossfade", title: "TỔNG THỂ DỰ ÁN CAO TỐC", subtitle: "Khảo sát hướng tuyến Km10-Km35", script: "Dự án xây dựng tuyến cao tốc Bắc - Nam đoạn Km10 đến Km35 có tổng chiều dài 25km đi qua địa bàn vùng kinh tế trọng điểm." },
+        { id: "s2", num: "02", name: "Bình đồ tuyến 1", duration: 7, assetId: "bd_2", motion: "pan_left_right", transition: "crossfade", title: "BÌNH ĐỒ TIM TUYẾN CIVIL 3D", subtitle: "Tỉ lệ 1:2000 - Bán kính đường cong R = 1500m", script: "Bình đồ tim tuyến được thiết kế tối ưu bằng phần mềm Autodesk Civil 3D, bán kính đường cong tròn lớn đảm bảo tốc độ xe 100km/h." },
+        { id: "s3", num: "03", name: "Phối cảnh tuyến", duration: 7, assetId: "pc_1", motion: "zoom_in", transition: "crossfade", title: "MÔ PHỎNG 3D AUTODESK INFRAWORKS", subtitle: "Nút giao liên thông hoàn chỉnh", script: "Tuyến cao tốc Bắc - Nam được thiết kế với quy mô 4 làn xe cao tốc hoàn chỉnh, tổ chức giao thông khác mức thông suốt và an toàn." },
+        { id: "s4", num: "04", name: "Mặt cắt ngang", duration: 5, assetId: "mc_1", motion: "static", transition: "crossfade", title: "MẶT CẮT NGANG ĐIỂN HÌNH B = 24.5M", subtitle: "4 làn xe cơ giới + 2 làn dừng khẩn cấp", script: "Mặt cắt ngang điển hình bề rộng nền đường B=24.5m gồm 4 làn xe chạy, dải phân cách giữa và lề gia cố dừng xe khẩn cấp." },
+        { id: "s5", num: "05", name: "Trắc dọc tuyến", duration: 6, assetId: "td_1", motion: "pan_left_right", transition: "crossfade", title: "TRẮC DỌC & CAO ĐỘ ĐÀO ĐẮP", subtitle: "Độ dốc dọc thiết kế i = 2.5%", script: "Trắc dọc thiết kế đảm bảo độ dốc dọc êm thuận, cân đối tối ưu khối lượng đào đắp và kiểm soát hoàn toàn cao độ thoát nước lũ." },
+        { id: "s6", num: "06", name: "Cầu vượt", duration: 6, assetId: "pc_2", motion: "zoom_in", transition: "crossfade", title: "CÔNG TRÌNH CẦU VƯỢT KHÁC MỨC", subtitle: "Dầm BTCT DƯL khẩu độ lớn", script: "Hệ thống cầu cạn và nút giao liên thông vượt sông áp dụng công nghệ dầm bê tông cốt thép dự ứng lực khẩu độ lớn hiện đại." },
+        { id: "s7", num: "07", name: "Cống thoát nước", duration: 5, assetId: "mc_2", motion: "tilt_down", transition: "crossfade", title: "HỆ THỐNG THOÁT NƯỚC & CỐNG CHUI", subtitle: "Khẩu độ cống hộp kiên cố", script: "Bố trí khẩu độ cống chui dân sinh và cống thoát lũ kiên cố, bảo vệ an toàn tuyệt đối cho nền đường trong mùa mưa bão." },
+        { id: "s8", num: "08", name: "Kết luận", duration: 5, assetId: "bd_4", motion: "zoom_out", transition: "crossfade", title: "HOÀN THIỆN ĐƯA VÀO KHAI THÁC", subtitle: "Đơn vị tư vấn & Ban Quản lý dự án", script: "Công trình hoàn thành sẽ rút ngắn thời gian di chuyển, tạo động lực liên kết vùng và thúc đẩy phát triển kinh tế xã hội bền vững." }
+      ]
+    },
+    {
+      id: "tpl_nutgiao",
+      name: "Nút Giao Khác Mức Liên Thông IC-01 & Cầu Vượt",
+      category: "nutgiao",
+      categoryName: "Nút giao & Cầu vượt",
+      badge: "Hạ tầng phức hợp",
+      badgeClass: "tag-teal",
+      duration: 38,
+      shotsCount: 6,
+      resolution: "1080p @ 30fps",
+      standards: "TCVN 11823:2017 / InfraWorks 3D",
+      desc: "Mô phỏng phối cảnh nút giao hoa thị dạng kèn trumpet, đường gom kết nối, các nhánh ramp lên xuống dốc kết hợp cầu vượt cạn khẩu độ lớn.",
+      assets: [
+        { id: "ng_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ nút giao Trumpet IC-01.dwg", size: "18.5 MB", res: "3840x2160", progress: 100, drawType: "interchange", title: "BÌNH ĐỒ HÌNH HỌC NÚT GIAO TRUMPET IC-01" },
+        { id: "ng_2", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ phân làn nhánh Ramp A-B.dwg", size: "15.2 MB", res: "3840x2160", progress: 100, drawType: "interchange", title: "BÌNH ĐỒ PHÂN LUỒNG XE CHẠY CÁC NHÁNH RAMP" },
+        { id: "ng_3", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc nhánh Ramp A dốc 4%.dwg", size: "9.1 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC THIẾT KẾ ĐỘ DỐC DỌC NHÁNH RAMP" },
+        { id: "ng_4", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN nhánh rẽ đơn B=8.5m.dwg", size: "7.4 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT NGANG ĐIỂN HÌNH NHÁNH RAMP" },
+        { id: "ng_5", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Mô phỏng 3D InfraWorks nút giao IC.png", size: "22.4 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D TOÀN CẢNH NÚT GIAO LIÊN THÔNG" },
+        { id: "ng_6", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Phối cảnh cầu vượt cạn nhánh rẽ.png", size: "21.0 MB", res: "3840x2160", progress: 100, drawType: "highway_3d", title: "PHỐI CẢNH 3D HƯỚNG XE CHẠY VƯỢT CẦU CẠN" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng quan nút giao", duration: 6, assetId: "ng_1", motion: "zoom_in", transition: "crossfade", title: "TỔNG THỂ NÚT GIAO LIÊN THÔNG IC-01", subtitle: "Kết nối Cao tốc Bắc Nam với Quốc lộ", script: "Nút giao liên thông IC-01 là điểm kết nối chiến lược giữa tuyến cao tốc và mạng lưới giao thông khu vực." },
+        { id: "s2", num: "02", name: "Bình đồ các nhánh Ramp", duration: 7, assetId: "ng_2", motion: "pan_left_right", transition: "crossfade", title: "HÌNH HỌC CÁC NHÁNH RAMP VÀO RA", subtitle: "Bán kính nhánh rẽ tối ưu R = 60m", script: "Các nhánh Ramp kết nối được thiết kế theo tiêu chuẩn hình học hiện đại, đảm bảo lưu thông an toàn tuyệt đối." },
+        { id: "s3", num: "03", name: "Phối cảnh 3D InfraWorks", duration: 7, assetId: "ng_5", motion: "zoom_in", transition: "crossfade", title: "MÔ PHỎNG 3D AUTODESK INFRAWORKS", subtitle: "Tổ chức giao thông khác mức thông suốt", script: "Mô hình không gian 3D trực quan hóa toàn bộ dòng giao thông, phân luồng đa tầng và loại bỏ hoàn toàn xung đột." },
+        { id: "s4", num: "04", name: "Mặt cắt nhánh rẽ", duration: 6, assetId: "ng_4", motion: "static", transition: "crossfade", title: "MẶT CẮT NGANG NHÁNH RAMP B = 8.5M", subtitle: "Làn xe đơn + Lề gia cố an toàn", script: "Mặt cắt ngang các nhánh rẽ bố trí siêu cao hợp lý, đảm bảo xe chạy êm thuận khi vào cua tốc độ cao." },
+        { id: "s5", num: "05", name: "Trắc dọc nhánh dốc", duration: 6, assetId: "ng_3", motion: "pan_left_right", transition: "crossfade", title: "TRẮC DỌC VÀ ĐỘ DỐC CÁC NHÁNH NỐI", subtitle: "Độ dốc dọc thiết kế i = 4.0%", script: "Trắc dọc nhánh vượt thiết kế đường cong đứng lồi lõm bán kính lớn, tầm nhìn quan sát xe chạy thông thoáng." },
+        { id: "s6", num: "06", name: "Toàn cảnh khai thác", duration: 6, assetId: "ng_6", motion: "zoom_out", transition: "crossfade", title: "TỔ CHỨC KHAI THÁC & ĐIỀU HÀNH GIAO THÔNG", subtitle: "Hệ thống biển báo ITS & Chiếu sáng", script: "Nút giao IC-01 hoàn thiện góp phần giải tỏa xung đột giao thông và nâng cao năng lực khai thác toàn tuyến." }
+      ]
+    },
+    {
+      id: "tpl_cauvuot",
+      name: "Cầu Vượt Sông Lớn & Cầu Cạn Đô Thị",
+      category: "nutgiao",
+      categoryName: "Nút giao & Cầu vượt",
+      badge: "Công trình cầu",
+      badgeClass: "tag-purple",
+      duration: 36,
+      shotsCount: 6,
+      resolution: "1080p @ 30fps",
+      standards: "AASHTO LRFD / Civil 3D Bridge Modeler",
+      desc: "Hồ sơ thiết kế dầm hộp đúc hẫng cân bằng kết hợp vòm thép mỹ thuật, trắc dọc thông thuyền và mặt cắt dầm Super-T vượt nhịp.",
+      assets: [
+        { id: "cv_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ tuyến vượt sông Km24.dwg", size: "16.8 MB", res: "3840x2160", progress: 100, drawType: "alignment", title: "BÌNH ĐỒ HƯỚNG TUYẾN VƯỢT SÔNG KM24+000" },
+        { id: "cv_2", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc cầu & thông thuyền.dwg", size: "12.3 MB", res: "3840x1080", progress: 100, drawType: "bridge_profile", title: "TRẮC DỌC CẦU VƯỢT SÔNG & TĨNH KHÔNG THÔNG THUYỀN" },
+        { id: "cv_3", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN dầm hộp đúc hẫng B=20.5m.dwg", size: "8.2 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT KHẨU ĐỘ DẦM HỘP DỰ ỨNG LỰC" },
+        { id: "cv_4", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Mô phỏng 3D cầu đúc hẫng cân bằng.png", size: "24.6 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D KẾT CẤU CẦU ĐÚC HẪNG CÂN BẰNG" },
+        { id: "cv_5", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Toàn cảnh cầu vượt sông chiều tà.png", size: "23.1 MB", res: "3840x2160", progress: 100, drawType: "highway_3d", title: "PHỐI CẢNH TOÀN CẢNH CÔNG TRÌNH CẦU VƯỢT SÔNG" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng thể cầu vượt", duration: 6, assetId: "cv_1", motion: "zoom_in", transition: "crossfade", title: "TỔNG THỂ CÔNG TRÌNH CẦU VƯỢT SÔNG", subtitle: "Khẩu độ nhịp chính L = 120m", script: "Công trình cầu vượt sông có khẩu độ nhịp chính 120m, kết nối liền mạch hai bờ kinh tế năng động." },
+        { id: "s2", num: "02", name: "Trắc dọc thông thuyền", duration: 6, assetId: "cv_2", motion: "pan_left_right", transition: "crossfade", title: "TRẮC DỌC TĨNH KHÔNG THÔNG THUYỀN", subtitle: "Khổ thông thuyền cấp II (H = 9.5m)", script: "Trắc dọc cầu bảo đảm tuyệt đối tĩnh không thông thuyền cấp II cho tàu bè tải trọng lớn lưu thông an toàn." },
+        { id: "s3", num: "03", name: "Mô phỏng 3D kết cấu", duration: 7, assetId: "cv_4", motion: "zoom_in", transition: "crossfade", title: "MÔ HÌNH KẾT CẤU DẦM ĐÚC HẪNG CÂN BẰNG", subtitle: "Bê tông cốt thép cường độ cao f'c = 50MPa", script: "Thi công bằng công nghệ đúc hẫng cân bằng hiện đại, kiểm soát biến dạng và ứng suất theo chuẩn quốc tế." },
+        { id: "s4", num: "04", name: "Mặt cắt dầm hộp", duration: 5, assetId: "cv_3", motion: "static", transition: "crossfade", title: "MẶT CẮT NGANG DẦM HỘP B = 20.5M", subtitle: "Bố trí cáp DƯL trong và ngoài", script: "Mặt cắt dầm hộp kín tăng cường độ cứng chống xoắn và tối ưu hóa khả năng chịu tải trọng xe nặng." },
+        { id: "s5", num: "05", name: "Trụ cầu & Móng cọc", duration: 6, assetId: "cv_2", motion: "tilt_down", transition: "crossfade", title: "KẾT CẤU TRỤ THÂN HẸP & BỆ CỌC KHOAN NHỒI", subtitle: "Đường kính cọc D = 1.5m cắm sâu vào tầng đá", script: "Móng cọc khoan nhồi ngàm sâu vào nền đá gốc đảm bảo độ ổn định vĩnh cửu trước tác động dòng chảy xói lở." },
+        { id: "s6", num: "06", name: "Toàn cảnh khánh thành", duration: 6, assetId: "cv_5", motion: "zoom_out", transition: "crossfade", title: "CÔNG TRÌNH BIỂU TƯỢNG HẠ TẦNG GIAO THÔNG", subtitle: "Chiếu sáng mỹ thuật LED kiến trúc", script: "Cầu vượt hoàn thành không chỉ giải quyết giao thông mà còn trở thành điểm nhấn kiến trúc cảnh quan sông nước." }
+      ]
+    },
+    {
+      id: "tpl_deonui",
+      name: "Tuyến Đường Đèo Núi & Gia Cố Mái Dốc (i = 5%)",
+      category: "caotoc",
+      categoryName: "Đường cao tốc",
+      badge: "Địa hình hiểm trở",
+      badgeClass: "tag-orange",
+      duration: 42,
+      shotsCount: 7,
+      resolution: "1080p @ 30fps",
+      standards: "TCVN 4054:2005 / Cấp III Miền Núi",
+      desc: "Tuyến đường qua địa hình núi dốc đứng, xử lý trượt sạt lở, tường chắn trọng lực, neo đá và mở rộng cua đường cong bán kính nhỏ.",
+      assets: [
+        { id: "dn_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ đèo dốc hiểm trở Km12-Km24.dwg", size: "17.4 MB", res: "3840x2160", progress: 100, drawType: "corridor", title: "BÌNH ĐỒ ĐƯỜNG CONG NẰM BÁN KÍNH NHỎ R=60M" },
+        { id: "dn_2", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc đoạn dốc dọc i=5.0%.dwg", size: "11.5 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC ĐƯỜNG ĐỎ ĐÈO DỐC LIÊN TỤC I = 5%" },
+        { id: "dn_3", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN đào sâu & gia cố taluy.dwg", size: "9.2 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT GIA CỐ MÁI DỐC NEO ĐÁ VÀ KHUNG BTCT" },
+        { id: "dn_4", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Mô phỏng 3D đường bám sườn núi.png", size: "26.0 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D KHÔNG GIAN ĐỊA HÌNH SƯỜN NÚI DỐC" },
+        { id: "dn_5", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Phối cảnh tường chắn bê tông trọng lực.png", size: "22.5 MB", res: "3840x2160", progress: 100, drawType: "highway_3d", title: "PHỐI CẢNH TƯỜNG CHẮN & HỆ THỐNG AN TOÀN ĐƯỜNG ĐÈO" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng thể đoạn đèo", duration: 6, assetId: "dn_1", motion: "zoom_in", transition: "crossfade", title: "HƯỚNG TUYẾN ĐÈO NÚI HIỂM TRỞ", subtitle: "Địa hình phân cắt mạnh chênh cao 400m", script: "Đoạn tuyến vượt qua dãy núi cao hiểm trở với địa hình phân cắt mạnh đòi hỏi giải pháp thiết kế đặc biệt." },
+        { id: "s2", num: "02", name: "Bình đồ đường cong cua", duration: 6, assetId: "dn_1", motion: "pan_left_right", transition: "crossfade", title: "BÌNH ĐỒ BÁN KÍNH ĐƯỜNG CONG R = 60M", subtitle: "Bố trí siêu cao và mở rộng bụng đường cong", script: "Bố trí đường cong tròn bán kính nhỏ kết hợp đường cong chuyển tiếp Clothoid giúp phương tiện vào cua êm ái." },
+        { id: "s3", num: "03", name: "Trắc dọc độ dốc", duration: 6, assetId: "dn_2", motion: "pan_left_right", transition: "crossfade", title: "TRẮC DỌC ĐỘ DỐC DỌC I = 5.0%", subtitle: "Bố trí làn dừng xe khẩn cấp và đường lánh nạn", script: "Trắc dọc khống chế độ dốc dọc tối đa 5%, bố trí hốc cứu nạn khẩn cấp cho xe tải mất phanh xuống đèo." },
+        { id: "s4", num: "04", name: "Mặt cắt gia cố taluy", duration: 6, assetId: "dn_3", motion: "static", transition: "crossfade", title: "GIA CỐ MÁI DỐC NEO ĐÁ VÀ KHUNG BTCT", subtitle: "Trồng cỏ Vetiver chống xói mòn sườn dốc", script: "Giải pháp neo đất đá kết hợp phun vữa xi măng và khung bê tông cốt thép bảo vệ taluy chống sạt lở." },
+        { id: "s5", num: "05", name: "Mô phỏng 3D InfraWorks", duration: 6, assetId: "dn_4", motion: "zoom_in", transition: "crossfade", title: "MÔ PHỎNG 3D TUYẾN BÁM SƯỜN NÚI", subtitle: "Tối ưu hóa khối lượng đào đắp đất đá", script: "Mô hình 3D sườn núi giúp tính toán cân đối đào đắp, giảm thiểu xâm hại cảnh quan tự nhiên khu vực." },
+        { id: "s6", num: "06", name: "Hệ thống tường chắn", duration: 6, assetId: "dn_5", motion: "tilt_down", transition: "crossfade", title: "TƯỜNG CHẮN BÊ TÔNG TRỌNG LỰC TALUY ÂM", subtitle: "Khẩu độ thoát nước mặt đỉnh taluy", script: "Tường chắn bê tông trọng lực taluy âm đảm bảo ổn định nền đường tại các vị trí vực sâu nguy hiểm." },
+        { id: "s7", num: "07", name: "Thông xe an toàn", duration: 6, assetId: "dn_1", motion: "zoom_out", transition: "crossfade", title: "AN TOÀN GIAO THÔNG VÙNG CAO", subtitle: "Hộ lan tôn sóng phản quang cao cấp", script: "Tuyến đường hoàn thành phá thế cô lập vùng cao, mang lại diện mạo mới cho kinh tế miền núi." }
+      ]
+    },
+    {
+      id: "tpl_thoatnuoc",
+      name: "Hạ Tầng Thoát Nước Đô Thị & Cống Hộp Chống Ngập",
+      category: "dothi",
+      categoryName: "Đô thị & Thoát nước",
+      badge: "Hạ tầng ngầm",
+      badgeClass: "tag-teal",
+      duration: 34,
+      shotsCount: 6,
+      resolution: "1080p @ 30fps",
+      standards: "TCVN 7957:2008 / Civil 3D Pipe Network",
+      desc: "Hệ thống thoát nước mưa, nước thải riêng biệt, hố ga thu nước định hình, cống tròn D1500 và cống hộp đôi 2x(2.5x2.5)m chống ngập đô thị.",
+      assets: [
+        { id: "tn_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ mạng lưới thoát nước đô thị.dwg", size: "15.0 MB", res: "3840x2160", progress: 100, drawType: "corridor", title: "BÌNH ĐỒ LƯU VỰC & MẠNG LƯỚI THOÁT NƯỚC MƯA" },
+        { id: "tn_2", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc cống hộp 2x(2.5x2.5)m.dwg", size: "10.4 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC CAO ĐỘ ĐÁY CỐNG & ĐỘ DỐC THOÁT NƯỚC" },
+        { id: "tn_3", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN hào kỹ thuật & tuynel ngầm.dwg", size: "8.6 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT HÀO KỸ THUẬT VÀ BỐ TRÍ HẠ TẦNG NGẦM" },
+        { id: "tn_4", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Mô phỏng 3D cửa xả và hồ điều hòa.png", size: "23.2 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D HỆ THỐNG CỬA XẢ CHỐNG NGẬP ĐÔ THỊ" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng thể lưu vực", duration: 5, assetId: "tn_1", motion: "zoom_in", transition: "crossfade", title: "LƯU VỰC THOÁT NƯỚC ĐÔ THỊ", subtitle: "Diện tích lưu vực F = 150 ha", script: "Quy hoạch thoát nước đồng bộ tính toán theo chu kỳ mưa tràn 5 năm, giải quyết dứt điểm ngập úng nội đô." },
+        { id: "s2", num: "02", name: "Bình đồ mạng lưới cống", duration: 6, assetId: "tn_1", motion: "pan_left_right", transition: "crossfade", title: "MẠNG LƯỚI ĐƯỜNG CỐNG THU GOM NƯỚC MƯA", subtitle: "Cống tròn BTCT D1000 - D1500 mối nối cao su", script: "Bình đồ mạng lưới cống ngầm bố trí dọc hai bên vỉa hè, kết nối trực tiếp với các hố ga ngăn mùi hiện đại." },
+        { id: "s3", num: "03", name: "Trắc dọc tuyến cống", duration: 6, assetId: "tn_2", motion: "pan_left_right", transition: "crossfade", title: "TRẮC DỌC ĐỘ DỐC TỰ CHẢY I = 0.15%", subtitle: "Kiểm soát mực nước triều cường và xả đáy", script: "Trắc dọc thiết kế đảm bảo vận tốc dòng chảy tự làm sạch, không lắng cặn bùn đất trong lòng cống." },
+        { id: "s4", num: "04", name: "Mặt cắt cống hộp đôi", duration: 5, assetId: "tn_3", motion: "static", transition: "crossfade", title: "MẶT CẮT CỐNG HỘP ĐÔI 2x(2.5x2.5)M", subtitle: "Bố trí ngầm dưới lòng đường chịu tải HL-93", script: "Mặt cắt cống hộp đôi bê tông cốt thép chịu tải trọng xe nặng, lắp đặt các cửa thăm và trạm quan trắc mực nước." },
+        { id: "s5", num: "05", name: "Mô phỏng 3D cửa xả", duration: 6, assetId: "tn_4", motion: "zoom_in", transition: "crossfade", title: "CỬA XẢ KÈ ĐÁ & VAN NGĂN TRIỀU CƯỜNG", subtitle: "Cửa xả tự động chống chảy ngược", script: "Hệ thống van lật ngăn triều cường tại cửa xả tự động đóng khi nước sông dâng cao, ngăn ngập ngược vào thành phố." },
+        { id: "s6", num: "06", name: "Đô thị xanh bền vững", duration: 6, assetId: "tn_4", motion: "zoom_out", transition: "crossfade", title: "HẠ TẦNG KỸ THUẬT ĐÔ THỊ THÔNG MINH", subtitle: "Tích hợp IoT cảm biến ngập lụt", script: "Dự án hoàn thành mang lại môi trường sống trong lành, đảm bảo an toàn giao thông đô thị suốt mùa mưa bão." }
+      ]
+    },
+    {
+      id: "tpl_vanhdai",
+      name: "Đại Lộ Đô Thị Vành Đai 6 Làn Xe & Cảnh Quan",
+      category: "dothi",
+      categoryName: "Đô thị & Thoát nước",
+      badge: "Cảnh quan đô thị",
+      badgeClass: "tag-green",
+      duration: 30,
+      shotsCount: 5,
+      resolution: "1080p @ 30fps",
+      standards: "QCXDVN 01:2021 / InfraWorks Corridor",
+      desc: "Mô phỏng đại lộ trung tâm bề rộng nền B=50m, dải phân cách trồng cây xanh cảnh quan, vỉa hè lát đá và hệ thống chiếu sáng thông minh Smart City.",
+      assets: [
+        { id: "vd_1", type: "binh_do", typeName: "Bình đồ tuyến", name: "Bình đồ đại lộ vành đai đô thị B=50m.dwg", size: "16.5 MB", res: "3840x2160", progress: 100, drawType: "alignment", title: "BÌNH ĐỒ ĐẠI LỘ VÀNH ĐAI ĐÔ THỊ 6 LÀN XE" },
+        { id: "vd_2", type: "trac_doc", typeName: "Trắc dọc", name: "Trắc dọc tuyến đô thị êm thuận.dwg", size: "9.8 MB", res: "3840x1080", progress: 100, drawType: "profile", title: "TRẮC DỌC TUYẾN ĐÔ THỊ BẢO ĐẢM TẦM NHÌN DỪNG XE" },
+        { id: "vd_3", type: "mat_cat", typeName: "Mặt cắt ngang", name: "MCN đại lộ B=50m dải phân cách xanh.dwg", size: "8.8 MB", res: "1920x1080", progress: 100, drawType: "cross_section", title: "MẶT CẮT ĐẠI LỘ 6 LÀN XE + VỈA HÈ CÂY XANH ĐÔ THỊ" },
+        { id: "vd_4", type: "phoi_canh", typeName: "Phối cảnh 3D", name: "Mô phỏng 3D cảnh quan đại lộ Smart City.png", size: "25.3 MB", res: "3840x2160", progress: 100, drawType: "infra_3d", title: "MÔ PHỎNG 3D CẢNH QUAN & CHIẾU SÁNG ĐẠI LỘ ĐÔ THỊ" }
+      ],
+      shots: [
+        { id: "s1", num: "01", name: "Tổng quan đại lộ", duration: 6, assetId: "vd_1", motion: "zoom_in", transition: "crossfade", title: "TRỤC ĐẠI LỘ VÀNH ĐAI TRUNG TÂM", subtitle: "Mặt cắt nền B = 50.0m - 6 làn xe cơ giới", script: "Đại lộ vành đai đô thị kết nối chuỗi đô thị vệ tinh, đóng vai trò trục xương sống phát triển không gian thành phố." },
+        { id: "s2", num: "02", name: "Bình đồ tổ chức giao thông", duration: 6, assetId: "vd_1", motion: "pan_left_right", transition: "crossfade", title: "TỔ CHỨC CÁC ĐIỂM QUAY ĐẦU & NÚT GIAO ĐÈN TÍN HIỆU", subtitle: "Bán kính rẽ lớn R = 25m cho xe buýt điện", script: "Bình đồ thiết kế đồng bộ các vị trí điểm dừng đón xe buýt công cộng, dải phân cách tách biệt làn xe máy và ô tô." },
+        { id: "s3", num: "03", name: "Mặt cắt ngang đại lộ", duration: 6, assetId: "vd_3", motion: "static", transition: "crossfade", title: "MẶT CẮT NGANG B = 50M CẢNH QUAN XANH", subtitle: "Dải phân cách giữa rộng 5m trồng cây bóng mát", script: "Mặt cắt ngang phân làn khoa học: 6 làn xe ô tô chạy nhanh, 2 làn gom xe thô sơ và dải cây xanh lọc bụi giảm ồn." },
+        { id: "s4", num: "04", name: "Mô phỏng 3D đô thị thông minh", duration: 6, assetId: "vd_4", motion: "zoom_in", transition: "crossfade", title: "KHÔNG GIAN ĐÔ THỊ SMART CITY HIỆN ĐẠI", subtitle: "Hệ thống chiếu sáng thông minh tiết kiệm năng lượng", script: "Ứng dụng giải pháp chiếu sáng LED thông minh và camera AI giám sát giao thông theo thời gian thực." },
+        { id: "s5", num: "05", name: "Diện mạo đô thị mới", duration: 6, assetId: "vd_4", motion: "zoom_out", transition: "crossfade", title: "HOÀN THIỆN ĐƯA VÀO VẬN HÀNH KHAI THÁC", subtitle: "Cửa ngõ kết nối giao thương sầm uất", script: "Đại lộ hoàn thành mở ra cơ hội thu hút đầu tư, nâng cao chất lượng cuộc sống cho cư dân toàn đô thị." }
+      ]
+    }
+  ],
+
+  openTemplateModal() {
+    const modal = document.getElementById("templateCatalogModal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    this.renderTemplateCatalog(this.currentTemplateCategory || "all");
+  },
+
+  closeTemplateModal() {
+    const modal = document.getElementById("templateCatalogModal");
+    if (!modal) return;
+    modal.style.display = "none";
+  },
+
+  filterTemplateCatalog(category, tabEl) {
+    this.currentTemplateCategory = category;
+    const tabs = document.querySelectorAll(".catalog-filter-tabs .cat-tab");
+    tabs.forEach(t => t.classList.remove("active"));
+    if (tabEl) tabEl.classList.add("active");
+    this.renderTemplateCatalog(category);
+  },
+
+  renderTemplateCatalog(category = "all") {
+    const grid = document.getElementById("templateCatalogGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    const list = category === "all" 
+      ? this.PROJECT_TEMPLATES 
+      : this.PROJECT_TEMPLATES.filter(t => t.category === category);
+
+    list.forEach(tpl => {
+      const card = document.createElement("div");
+      card.className = "tpl-card";
+      card.onclick = () => GlobalStore.applyTemplate(tpl.id);
+
+      card.innerHTML = `
+        <div class="tpl-thumb">
+          <canvas id="tpl-canvas-${tpl.id}" width="320" height="140"></canvas>
+          <span class="tpl-tag-badge ${tpl.badgeClass}">${tpl.badge}</span>
+        </div>
+        <div class="tpl-body">
+          <div class="tpl-title">${tpl.name}</div>
+          <div class="tpl-desc">${tpl.desc}</div>
+          <div class="tpl-meta-row">
+            <span>⏱️ <strong>${tpl.duration}s</strong> (${tpl.shotsCount} cảnh)</span>
+            <span>📐 <strong>${tpl.standards}</strong></span>
+          </div>
+          <button class="btn-apply-tpl" onclick="event.stopPropagation(); GlobalStore.applyTemplate('${tpl.id}')">
+            ⚡ Áp dụng mẫu này
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+
+      // Vẽ thumbnail đồ họa kỹ thuật Civil 3D / InfraWorks
+      setTimeout(() => this.drawTemplateThumb(tpl), 0);
+    });
+  },
+
+  drawTemplateThumb(tpl) {
+    const canvas = document.getElementById(`tpl-canvas-${tpl.id}`);
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Nền tối kỹ thuật
+    ctx.fillStyle = "#070b13";
+    ctx.fillRect(0, 0, w, h);
+
+    // Lưới tọa độ
+    ctx.strokeStyle = "#131e33";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 25) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    if (tpl.id === "tpl_caotoc") {
+      // Tuyến cao tốc uốn lượn
+      ctx.strokeStyle = "rgba(14, 165, 233, 0.25)"; ctx.lineWidth = 22;
+      ctx.beginPath(); ctx.moveTo(20, 110); ctx.bezierCurveTo(110, 100, 190, 30, 300, 35); ctx.stroke();
+
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(20, 110); ctx.bezierCurveTo(110, 100, 190, 30, 300, 35); ctx.stroke();
+
+      ctx.strokeStyle = "#facc15"; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]);
+      ctx.beginPath(); ctx.moveTo(20, 110); ctx.bezierCurveTo(110, 100, 190, 30, 300, 35); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#fff"; ctx.font = "bold 9px monospace";
+      ctx.fillText("Km10+000", 30, 125);
+      ctx.fillText("Km35+000", 240, 25);
+    } else if (tpl.id === "tpl_nutgiao") {
+      // Vòng xuyến & Ramp kèn Trumpet
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(10, 70); ctx.lineTo(310, 70); ctx.stroke();
+
+      ctx.strokeStyle = "#10b981"; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(160, 70, 38, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(100, 130); ctx.quadraticCurveTo(160, 40, 220, 130); ctx.stroke();
+
+      ctx.fillStyle = "#fff"; ctx.font = "bold 9px monospace";
+      ctx.fillText("RAMP A", 70, 105);
+      ctx.fillText("RAMP B", 225, 105);
+      ctx.fillText("IC-01", 145, 73);
+    } else if (tpl.id === "tpl_cauvuot") {
+      // Cầu vượt sông
+      ctx.fillStyle = "#0e3a5a";
+      ctx.fillRect(0, 85, w, 55);
+
+      // Mố trụ cầu
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(80, 50, 14, 50);
+      ctx.fillRect(160, 40, 18, 60);
+      ctx.fillRect(240, 50, 14, 50);
+
+      // Bản mặt cầu dầm hộp
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(10, 50); ctx.lineTo(310, 50); ctx.stroke();
+
+      // Vòm dây văng mỹ thuật
+      ctx.strokeStyle = "#c084fc"; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(90, 50); ctx.quadraticCurveTo(169, 10, 248, 50); ctx.stroke();
+
+      ctx.fillStyle = "#38bdf8"; ctx.font = "bold 9px monospace";
+      ctx.fillText("THÔNG THUYỀN H = 9.5M", 100, 120);
+    } else if (tpl.id === "tpl_deonui") {
+      // Đường đèo dốc núi
+      ctx.strokeStyle = "#334155"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath(); ctx.moveTo(0, 30 + i * 25); ctx.lineTo(w, 20 + i * 30); ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#f97316"; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(20, 120); ctx.lineTo(140, 90); ctx.lineTo(80, 50); ctx.lineTo(260, 25);
+      ctx.stroke();
+
+      ctx.fillStyle = "#fb923c"; ctx.font = "bold 9px monospace";
+      ctx.fillText("ĐỘ DỐC i = 5.0%", 150, 60);
+      ctx.fillText("R = 60m", 60, 40);
+    } else if (tpl.id === "tpl_thoatnuoc") {
+      // Tuyến cống ngầm thoát nước
+      ctx.fillStyle = "#1e293b"; ctx.fillRect(20, 30, w - 40, 80);
+
+      ctx.strokeStyle = "#14b8a6"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(40, 70); ctx.lineTo(280, 70); ctx.stroke();
+
+      // Hố ga
+      ctx.fillStyle = "#0d9488";
+      ctx.fillRect(60, 45, 20, 50);
+      ctx.fillRect(150, 45, 20, 50);
+      ctx.fillRect(240, 45, 20, 50);
+
+      ctx.fillStyle = "#5eead4"; ctx.font = "bold 9px monospace";
+      ctx.fillText("CỐNG HỘP ĐÔI 2x(2.5x2.5)M", 70, 122);
+    } else {
+      // Đại lộ đô thị 6 làn xe
+      ctx.fillStyle = "#1e293b"; ctx.fillRect(20, 30, w - 40, 80);
+
+      // Vạch kẻ đường
+      ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 1.5; ctx.setLineDash([8, 8]);
+      ctx.beginPath(); ctx.moveTo(20, 55); ctx.lineTo(300, 55); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(20, 85); ctx.lineTo(300, 85); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Dải phân cách giữa xanh
+      ctx.fillStyle = "#10b981"; ctx.fillRect(20, 67, w - 40, 6);
+
+      ctx.fillStyle = "#34d399"; ctx.font = "bold 9px monospace";
+      ctx.fillText("ĐẠI LỘ VÀNH ĐAI B = 50M (6 LÀN)", 50, 122);
+    }
+  },
+
+  applyTemplate(tplId) {
+    const tpl = this.PROJECT_TEMPLATES.find(t => t.id === tplId);
+    if (!tpl) {
+      alert("Không tìm thấy mẫu dự án này.");
+      return;
+    }
+
+    // 1. Cập nhật thông tin dự án
+    this.state.project.name = tpl.name;
+    const headerTitle = document.getElementById("headerProjectName");
+    if (headerTitle) headerTitle.textContent = "Dự án: " + tpl.name;
+    const headerSub = document.getElementById("headerProjectSub");
+    if (headerSub) headerSub.textContent = tpl.desc;
+
+    // 2. Nạp toàn bộ Assets & Shots của mẫu
+    this.state.assets = JSON.parse(JSON.stringify(tpl.assets));
+    this.state.shots = JSON.parse(JSON.stringify(tpl.shots));
+    this.state.selectedShotIndex = 0;
+
+    // 3. Xóa cache canvas để vẽ lại theo dự án mới
+    this.canvasCache.clear();
+
+    // 4. Đồng bộ hóa toàn bộ ứng dụng
+    this.calculateTotalDuration();
+    this.buildFullScriptFromShots();
+    this.renderAssetTable();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    this.drawEditorFrame(0);
+
+    // 5. Đóng modal và chuyển ngay sang Bước 3 (Biên tập) để người dùng chiêm ngưỡng
+    this.closeTemplateModal();
+    this.setStep(3);
+    this.triggerAutoSave();
+
+    // Thông báo nhanh
+    setTimeout(() => {
+      alert(`🎉 Đã áp dụng thành công mẫu "${tpl.name}"!\nBao gồm ${tpl.shotsCount} phân cảnh chuẩn Civil 3D (${tpl.duration}s).`);
+    }, 150);
   }
 };
 
