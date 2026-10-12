@@ -56,6 +56,10 @@
   - Xây dựng Multi-Track Timeline chuẩn NLE: Track Video phân cảnh, Track Keyframes hình thoi `◆` tương tác, Track Phụ đề & Lý trình Km, Track Dạng sóng Audio Waveform.
   - Thanh Transport Controls: Play/Pause, tua đầu/cuối, tua ±1s, Scrubber đồng bộ thời gian thực, Timecode chuẩn SMPTE `00:00:00:00`.
   - Bảng Inspector 3 Tabs chuyên nghiệp: 6 Motion Presets công trình, bảng Keyframes $X,Y,Z$ & Tiêu cự live-sync, Quality Gate Validator, thông số CAD/GIS & thuyết minh AI.
+- [x] **PR-15: Tích Hợp Giao Diện & Embedded Worker (Loại Bỏ Phụ Thuộc File .BAT)**:
+  - Nhúng trực tiếp Background Render Worker vào tiến trình FastAPI server qua `start_embedded_worker()`, tự động xử lý render ngầm mà không cần mở tiến trình hay terminal thứ hai.
+  - Tạo launcher vạn năng `run.py`: khởi động Web UI Studio + API Server + Render Worker chỉ bằng 1 lệnh `python run.py` và tự động mở trình duyệt.
+  - Hỗ trợ mở trực tiếp `index.html` trong bất kỳ trình duyệt web nào mà không cần chạy file `.bat`.
 
 ## Blockers & Trạng thái chưa kiểm chứng (Unverified / Blocked)
 

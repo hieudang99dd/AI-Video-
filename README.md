@@ -31,29 +31,26 @@ Open:
 - Web: http://localhost:3000
 - API docs: http://localhost:8000/docs
 
-## Quick start — API/worker without Docker
+## Khởi động trực tiếp (Không cần chạy file .bat)
+
+Chỉ cần chạy 1 lệnh duy nhất bằng Python:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -e './apps/api[dev]'
-export DATABASE_URL=sqlite:////tmp/cinevideo.db
-export STORAGE_ROOT=/tmp/cinevideo-storage
+python run.py
+```
+
+Lệnh này sẽ:
+- Khởi động máy chủ Web UI Studio tại `http://localhost:8000`.
+- Tự động kích hoạt Render Worker chạy ngầm trong cùng tiến trình (xử lý render ngay lập tức mà không cần mở terminal thứ hai hay file `.bat`).
+- Tự động mở trình duyệt web đến ứng dụng.
+
+Hoặc mở trực tiếp file `index.html` trong bất kỳ trình duyệt web nào (Chrome, Edge) để trải nghiệm chế độ Studio Độc Lập hoàn toàn offline mà không cần khởi động bất kỳ tiến trình nào.
+
+### Tùy chọn chạy thủ công:
+
+```bash
+# Chỉ chạy server (Worker đã được nhúng sẵn tự động):
 uvicorn app.main:app --app-dir apps/api --reload
-```
-
-In a second terminal:
-
-```bash
-export DATABASE_URL=sqlite:////tmp/cinevideo.db
-export STORAGE_ROOT=/tmp/cinevideo-storage
-python -m app.workers.render_worker --app-dir apps/api
-```
-
-For local source execution, simpler:
-
-```bash
-PYTHONPATH=apps/api python -m app.workers.render_worker
 ```
 
 ## Core API flow

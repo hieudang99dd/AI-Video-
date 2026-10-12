@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import time
 from pathlib import Path
 
@@ -322,6 +323,40 @@ def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
 def settings_path(rel: str) -> Path:
     # Use storage resolver without exposing arbitrary filesystem paths.
     return storage.resolve(f"local://{rel}")
+
+
+_worker_thread: threading.Thread | None = None
+_stop_event = threading.Event()
+
+
+def start_embedded_worker() -> None:
+    """Start the render worker loop in a background daemon thread."""
+    global _worker_thread
+    if _worker_thread is not None and _worker_thread.is_alive():
+        return
+    _stop_event.clear()
+
+    def _loop():
+        Base.metadata.create_all(engine)
+        print("embedded render worker thread started", flush=True)
+        while not _stop_event.is_set():
+            try:
+                job_id = pop_render(timeout=1) or claim_fallback_job()
+                if job_id:
+                    process(job_id)
+                else:
+                    time.sleep(0.5)
+            except Exception as exc:
+                print(f"embedded worker error: {exc}", flush=True)
+                time.sleep(1.0)
+
+    _worker_thread = threading.Thread(target=_loop, name="EmbeddedRenderWorker", daemon=True)
+    _worker_thread.start()
+
+
+def stop_embedded_worker() -> None:
+    """Signal the background worker thread to terminate."""
+    _stop_event.set()
 
 
 def main():
