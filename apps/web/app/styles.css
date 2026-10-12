@@ -1,0 +1,20 @@
+:root { font-family: Inter, system-ui, sans-serif; background:#0b0d10; color:#f5f7fa; }
+* { box-sizing:border-box; }
+body { margin:0; }
+main { max-width:1120px; margin:0 auto; padding:36px 20px 80px; }
+h1 { font-size:40px; margin:0 0 8px; }
+h2 { margin-top:0; }
+.muted { color:#9da7b3; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; }
+.card { background:#14181e; border:1px solid #252c35; border-radius:16px; padding:20px; margin:18px 0; }
+input, select, button { font:inherit; }
+input, select { width:100%; padding:10px 12px; margin:6px 0 12px; border-radius:10px; border:1px solid #333d49; background:#0f1318; color:#fff; }
+button { padding:10px 14px; border-radius:10px; border:0; background:#f2f5f8; color:#111; cursor:pointer; font-weight:700; }
+button.secondary { background:#29313b; color:#fff; }
+button:disabled { opacity:.45; cursor:not-allowed; }
+.asset { display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #252c35; }
+.badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#242b34; margin-right:6px; font-size:12px; }
+.progress { height:8px; background:#242b34; border-radius:999px; overflow:hidden; }
+.progress > div { height:100%; background:#fff; }
+pre { white-space:pre-wrap; word-break:break-word; font-size:12px; color:#c6d0db; }
+a { color:#fff; }
