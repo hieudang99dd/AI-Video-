@@ -469,6 +469,33 @@
       display: flex; justify-content: space-between; align-items: center;
     }
 
+    /* KHUNG NỀN TRỐNG XEM TRƯỚC (BƯỚC 2) */
+    .player-empty-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #111622;
+      z-index: 5;
+      color: #64748b;
+      user-select: none;
+    }
+    .player-empty-placeholder svg {
+      width: 48px;
+      height: 48px;
+      stroke: #475569;
+      opacity: 0.85;
+    }
+    .player-empty-placeholder span {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
     /* BẢNG THUỘC TÍNH (PROPERTIES PANEL) BÊN PHẢI */
     .ws3-properties-col {
       background: #0b101c;
@@ -487,6 +514,55 @@
     .prop-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
     .prop-input, .prop-select {
       background: #090e18; border: 1px solid var(--border); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; width: 100%;
+    }
+    .prop-input:disabled, .prop-select:disabled {
+      background: #080c16;
+      border-color: #172033;
+      color: #475569;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .btn-prop-browse {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-prop-browse:disabled {
+      background: #080c16;
+      border-color: #172033;
+      color: #475569;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .prop-small-boxes {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .prop-mini-box {
+      flex: 1;
+      background: #080c16;
+      border: 1px solid #1a2333;
+      color: #475569;
+      text-align: center;
+      padding: 5px;
+      border-radius: 4px;
+      font-size: 11px;
+      user-select: none;
+    }
+    .timeline-empty-cta {
+      width: 100%;
+      text-align: center;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      user-select: none;
+      pointer-events: none;
     }
 
     /* TIMELINE CHUYÊN NGHIỆP ĐA TRACK Ở ĐÁY */
@@ -762,7 +838,7 @@
         <button class="btn-back" onclick="GlobalStore.prevStep()" title="Quay lại bước trước">←</button>
         <div class="proj-info">
           <h2>
-            <span id="headerProjectName">Dự án: Cao tốc Bắc - Nam (Km10-Km35)</span>
+            <span id="headerProjectName">Dự án: Dự án mới</span>
             <span class="badge-status">Đang xử lý</span>
           </h2>
           <p id="headerProjectSub">Tạo video thuyết minh từ hồ sơ thiết kế Civil 3D & InfraWorks</p>
@@ -970,19 +1046,28 @@
               <div class="player-screen-box">
                 <canvas id="editorCanvas" width="1200" height="720"></canvas>
                 
-                <div class="player-overlay-top">
-                  <div class="badge-screen-shot" id="ws3ShotBadge">Cảnh 03 - Phối cảnh tuyến</div>
+                <div class="player-overlay-top" id="ws3OverlayTop" style="display:none;">
+                  <div class="badge-screen-shot" id="ws3ShotBadge">Cảnh 01 - Tổng quan</div>
                   <div class="badge-screen-res">1200x720 @ 30fps</div>
+                </div>
+
+                <!-- BƯỚC 2: KHUNG NỀN XÁM TỐI & ICON THƯ MỤC GẠCH CHÉO KHI CHƯA CHỌN PHÂN CẢNH -->
+                <div class="player-empty-placeholder" id="playerEmptyPlaceholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+                    <line x1="2" y1="2" x2="22" y2="22"></line>
+                  </svg>
+                  <span>Chưa có phân cảnh nào được chọn</span>
                 </div>
 
                 <div class="player-controls-strip">
                   <div class="editor-scrubber" id="ws3Scrubber" onclick="GlobalStore.handleScrub(event)">
-                    <div class="editor-scrubber-fill" id="ws3ScrubberFill"></div>
+                    <div class="editor-scrubber-fill" id="ws3ScrubberFill" style="width:0%;"></div>
                   </div>
                   <div class="editor-ctrl-buttons">
                     <div style="display:flex; align-items:center; gap:10px;">
-                      <button style="background:none; border:none; color:#fff; cursor:pointer; font-size:15px;" id="ws3PlayBtn" onclick="GlobalStore.togglePlay()">▶️</button>
-                      <span style="font-size:11px; color:#cbd5e1; font-variant-numeric:tabular-nums;" id="ws3TimeText">00:18 / 00:47</span>
+                      <button style="background:none; border:none; color:#fff; cursor:not-allowed; font-size:15px; opacity:0.4;" id="ws3PlayBtn" onclick="GlobalStore.togglePlay()" disabled>▶️</button>
+                      <span style="font-size:11px; color:#cbd5e1; font-variant-numeric:tabular-nums;" id="ws3TimeText">00:00 / 00:00</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-muted);">
                       <span style="cursor:pointer;" onclick="GlobalStore.testCurrentVoice()">🔊</span>
@@ -993,26 +1078,32 @@
               </div>
             </div>
 
-            <!-- Bảng thuộc tính phân cảnh (Properties Panel) bên phải -->
+            <!-- BƯỚC 3: BẢNG THUỘC TÍNH PHÂN CẢNH (CỘT BÊN PHẢI) DỌN SẠCH & VÔ HIỆU HÓA -->
             <div class="ws3-properties-col">
               <div class="prop-header">
                 <span>Thuộc tính phân cảnh</span>
-                <span style="color:#38bdf8;" id="propShotNumTag">#03</span>
+                <span style="color:#38bdf8;" id="propShotNumTag"></span>
               </div>
 
               <div class="prop-row">
                 <span class="prop-label">Tên phân cảnh:</span>
-                <input class="prop-input" id="propShotName" onchange="GlobalStore.updateActiveShotProp('name', this.value)" />
+                <input class="prop-input" id="propShotName" placeholder="--" disabled onchange="GlobalStore.updateActiveShotProp('name', this.value)" />
               </div>
 
               <div class="prop-row">
                 <span class="prop-label">Bản vẽ liên kết:</span>
-                <select class="prop-select" id="propAssetSelect" onchange="GlobalStore.updateActiveShotProp('assetId', this.value)"></select>
+                <div style="display:flex; gap:6px;">
+                  <select class="prop-select" id="propAssetSelect" disabled onchange="GlobalStore.updateActiveShotProp('assetId', this.value)">
+                    <option value="" disabled selected>Bản vẽ liên kết</option>
+                  </select>
+                  <button class="btn-prop-browse" id="btnPropBrowse" disabled onclick="document.getElementById('fileUploadInput').click()" title="Chọn tệp">...</button>
+                </div>
               </div>
 
               <div class="prop-row">
                 <span class="prop-label">Chuyển động máy quay (Camera):</span>
-                <select class="prop-select" id="propMotionSelect" onchange="GlobalStore.updateActiveShotProp('motion', this.value)">
+                <select class="prop-select" id="propMotionSelect" disabled onchange="GlobalStore.updateActiveShotProp('motion', this.value)">
+                  <option value="" disabled selected>--</option>
                   <option value="zoom_in">Thu phóng cận cảnh (Zoom In 1.0 ➜ 1.15x)</option>
                   <option value="zoom_out">Mở rộng toàn cảnh (Zoom Out 1.15 ➜ 1.0x)</option>
                   <option value="pan_left_right">Quét ngang (Pan Trái ➜ Phải)</option>
@@ -1024,12 +1115,13 @@
 
               <div class="prop-row">
                 <span class="prop-label">Thời lượng (giây):</span>
-                <input type="number" min="3" max="20" class="prop-input" id="propDuration" onchange="GlobalStore.updateActiveShotProp('duration', parseFloat(this.value))" />
+                <input type="number" min="0" max="20" class="prop-input" id="propDuration" placeholder="0" value="0" disabled onchange="GlobalStore.updateActiveShotProp('duration', parseFloat(this.value))" />
               </div>
 
               <div class="prop-row">
                 <span class="prop-label">Hiệu ứng chuyển tiếp (Transition):</span>
-                <select class="prop-select" id="propTransitionSelect" onchange="GlobalStore.updateActiveShotProp('transition', this.value)">
+                <select class="prop-select" id="propTransitionSelect" disabled onchange="GlobalStore.updateActiveShotProp('transition', this.value)">
+                  <option value="" disabled selected>--</option>
                   <option value="crossfade">Cross-fade (Mờ dần êm ái)</option>
                   <option value="cut">Cắt dứt khoát (Hard Cut)</option>
                   <option value="fade_black">Chuyển qua nền tối (Dip to Black)</option>
@@ -1038,33 +1130,39 @@
 
               <div class="prop-row">
                 <span class="prop-label">Banner phụ đề kỹ thuật:</span>
-                <input class="prop-input" id="propTitle" placeholder="Tiêu đề banner" onchange="GlobalStore.updateActiveShotProp('title', this.value)" />
-                <input class="prop-input" id="propSubtitle" placeholder="Ghi chú lý trình / tỷ lệ" style="margin-top:4px;" onchange="GlobalStore.updateActiveShotProp('subtitle', this.value)" />
+                <textarea class="prop-input" id="propTitle" rows="3" placeholder="" disabled style="resize:none;" onchange="GlobalStore.updateActiveShotProp('title', this.value)"></textarea>
+                <div class="prop-small-boxes">
+                  <div class="prop-mini-box" id="propMini1">--</div>
+                  <div class="prop-mini-box" id="propMini2">--</div>
+                  <div class="prop-mini-box" id="propMini3">--</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Timeline chuyên nghiệp Đa Track (Multi-track Timeline) ở đáy -->
-          <div class="ws3-multi-track-timeline">
+          <!-- BƯỚC 4: RESET TIMELINE ĐA TRACK Ở ĐÁY VỚI THÔNG ĐIỆP GỢI Ý CHÌM -->
+          <div class="ws3-multi-track-timeline" ondragover="event.preventDefault()" ondrop="GlobalStore.handleTimelineDrop(event)">
             <div class="timeline-top-bar">
-              <span class="timeline-top-title">
-                ⏱️ Timeline Dự Án 08 Phân Cảnh Chuẩn Civil 3D
+              <span class="timeline-top-title" id="timelineTopTitle">
+                Timeline Dự Án
               </span>
               <div style="display:flex; gap:6px;">
-                <button class="btn-editor-action" onclick="GlobalStore.addShot()">+ Thêm cảnh</button>
-                <button class="btn-editor-action" onclick="GlobalStore.playFromStart()">▶️ Phát toàn bộ</button>
+                <button class="btn-editor-action" id="btnAddShot" onclick="GlobalStore.addShot()">+ Thêm cảnh</button>
+                <button class="btn-editor-action" id="btnPlayAll" disabled style="opacity:0.4; cursor:not-allowed;" onclick="GlobalStore.playFromStart()">▶️ Phát toàn bộ</button>
               </div>
             </div>
 
-            <div class="timeline-ruler-track">
-              <span>0:00</span><span>0:10</span><span>0:20</span><span>0:30</span><span>0:40</span><span>0:47</span>
+            <div class="timeline-ruler-track" id="timelineRulerTrack">
+              <span>0:00</span><span>0:10</span><span>0:20</span><span>0:30</span><span>0:40</span><span>0:50</span>
             </div>
 
             <div class="timeline-tracks-area">
               <!-- TRACK 1: VIDEO -->
               <div class="track-row">
                 <div class="track-label">🎞️ Video</div>
-                <div class="track-content" id="tlTrackVideo"></div>
+                <div class="track-content" id="tlTrackVideo">
+                  <div class="timeline-empty-cta">Kéo thả phân cảnh vào đây</div>
+                </div>
               </div>
 
               <!-- TRACK 2: AUDIO -->
@@ -1082,12 +1180,12 @@
           </div>
         </div>
 
-        <!-- Thanh điều hướng đáy Workspace 3 -->
+        <!-- BƯỚC 5: KHÓA NÚT TIẾP TỤC XUẤT VIDEO Ở GÓC DƯỚI BÊN PHẢI -->
         <div class="view-nav-bar">
           <button class="btn-step-nav btn-step-prev" onclick="GlobalStore.setStep(2)">
             ← Quay lại: Kịch bản AI
           </button>
-          <button class="btn-step-nav btn-step-next" onclick="GlobalStore.setStep(4)">
+          <button class="btn-step-nav btn-step-next" id="btnNextStep3" disabled style="opacity:0.4; cursor:not-allowed;" onclick="GlobalStore.setStep(4)">
             Tiếp tục: Cấu hình xuất video ➜
           </button>
         </div>
@@ -1285,19 +1383,22 @@
 // ========================================================
 const GlobalStore = {
   state: {
-    currentStep: 1,
+    currentStep: 3,
     project: {
-      name: "Cao tốc Bắc - Nam (Km10-Km35)",
+      name: "Dự án mới",
       status: "Đang xử lý",
       lastSaved: new Date()
     },
-    assets: [],
+    currentScene: null,    // BƯỚC 1: Biến quản lý trạng thái chính khởi tạo null
+    timelineItems: [],     // BƯỚC 1: Mảng rỗng []
+    subtitleData: [],      // BƯỚC 1: Mảng rỗng []
+    assets: [],            // BƯỚC 1: Mảng rỗng []
     script: {
       fullText: "",
       scenes: []
     },
-    shots: [],
-    selectedShotIndex: 2, // Mặc định cảnh 03 (Phối cảnh)
+    shots: [],             // BƯỚC 1: Mảng rỗng []
+    selectedShotIndex: null, // BƯỚC 1: null khi chưa chọn phân cảnh
     exportConfig: {
       res: "720p",
       fps: "30",
@@ -1308,8 +1409,8 @@ const GlobalStore = {
     },
     playback: {
       isPlaying: false,
-      currentTime: 18,
-      totalDuration: 47,
+      currentTime: 0,
+      totalDuration: 0,
       animationId: null
     }
   },
@@ -1317,7 +1418,12 @@ const GlobalStore = {
   canvasCache: new Map(),
 
   init() {
-    this.loadStandardCivilPackage();
+    // BƯỚC 1: Khởi tạo Empty State sạch sẽ, không gán mock data mặc định
+    this.calculateTotalDuration();
+    this.renderAssetTable();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
     this.setStep(3);
     this.initWaveformUI();
   },
@@ -1350,11 +1456,21 @@ const GlobalStore = {
       { id: "s8", num: "08", name: "Kết luận", duration: 5, assetId: "bd_4", motion: "zoom_out", transition: "crossfade", title: "HOÀN THIỆN ĐƯA VÀO KHAI THÁC", subtitle: "Đơn vị tư vấn & Ban Quản lý dự án", script: "Công trình hoàn thành sẽ rút ngắn thời gian di chuyển, tạo động lực liên kết vùng và thúc đẩy phát triển kinh tế xã hội bền vững." }
     ];
 
+    this.state.selectedShotIndex = 2;
+    this.state.currentScene = this.state.shots[2];
+    this.state.timelineItems = this.state.shots;
+    this.state.subtitleData = this.state.shots.map(x => x.title);
+    this.state.project.name = "Cao tốc Bắc - Nam (Km10-Km35)";
+    const headerTitle = document.getElementById("headerProjectName");
+    if (headerTitle) headerTitle.textContent = "Dự án: " + this.state.project.name;
+
     this.calculateTotalDuration();
     this.buildFullScriptFromShots();
     this.renderAssetTable();
     this.renderWorkspace2UI();
     this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    this.drawEditorFrame(18);
     this.triggerAutoSave();
   },
 
@@ -1368,9 +1484,13 @@ const GlobalStore = {
 
   // 1.3 Validation Guard & Stepper Navigation
   setStep(targetStep) {
-    // Validation rules
-    if (targetStep >= 2 && this.state.assets.length === 0) {
-      alert("⚠️ Vui lòng tải ít nhất 1 bản vẽ hoặc bấm 'Nạp 12 Bản Vẽ Mẫu' trước khi tiếp tục!");
+    // BƯỚC 5: Validation Guard - Chặn đi tiếp sang Bước 4 khi dự án trống
+    if (targetStep === 4 && (!this.state.shots || this.state.shots.length === 0)) {
+      alert("⚠️ Dự án hiện chưa có phân cảnh nào! Vui lòng thêm phân cảnh hoặc áp dụng mẫu dự án trước khi chuyển sang bước xuất video.");
+      return;
+    }
+    if (targetStep === 2 && this.state.assets.length === 0 && (!this.state.shots || this.state.shots.length === 0)) {
+      alert("⚠️ Vui lòng tải ít nhất 1 bản vẽ hoặc chọn mẫu dự án trước khi tiếp tục!");
       return;
     }
 
@@ -1607,31 +1727,173 @@ const GlobalStore = {
   // WORKSPACE 3: BIÊN TẬP & PHÂN CẢNH (EDITOR VIEW CHÍNH)
   // ========================================================
   populatePropertiesCol() {
-    const s = this.state.shots[this.state.selectedShotIndex];
-    if (!s) return;
+    const hasShots = this.state.shots && this.state.shots.length > 0;
+    const isSelected = hasShots && this.state.selectedShotIndex !== null && this.state.selectedShotIndex >= 0 && this.state.selectedShotIndex < this.state.shots.length;
+    const s = isSelected ? this.state.shots[this.state.selectedShotIndex] : null;
 
-    document.getElementById("ws3ShotBadge").textContent = `Cảnh ${s.num} - ${s.name}`;
-    document.getElementById("propShotNumTag").textContent = `#${s.num}`;
-    document.getElementById("propShotName").value = s.name;
-    document.getElementById("propMotionSelect").value = s.motion;
-    document.getElementById("propDuration").value = s.duration;
-    document.getElementById("propTransitionSelect").value = s.transition;
-    document.getElementById("propTitle").value = s.title;
-    document.getElementById("propSubtitle").value = s.subtitle;
+    this.state.currentScene = s;
+    this.state.timelineItems = hasShots ? this.state.shots : [];
+    this.state.subtitleData = hasShots ? this.state.shots.map(x => x.title) : [];
 
-    // Populate asset dropdown
-    const sel = document.getElementById("propAssetSelect");
-    sel.innerHTML = "";
-    this.state.assets.forEach(a => {
-      const opt = document.createElement("option");
-      opt.value = a.id;
-      opt.textContent = `${a.typeName}: ${a.name}`;
-      if (a.id === s.assetId) opt.selected = true;
-      sel.appendChild(opt);
-    });
+    // Component xem trước video (Khu vực trung tâm - Bước 2)
+    const emptyPlaceholder = document.getElementById("playerEmptyPlaceholder");
+    const overlayTop = document.getElementById("ws3OverlayTop");
+    const canvas = document.getElementById("editorCanvas");
+    const playBtn = document.getElementById("ws3PlayBtn");
+    const timeText = document.getElementById("ws3TimeText");
+    const scrubberFill = document.getElementById("ws3ScrubberFill");
+    const btnPlayAll = document.getElementById("btnPlayAll");
+    const btnNextStep3 = document.getElementById("btnNextStep3");
+
+    // Các ô form nhập liệu trong bảng thuộc tính (Cột bên phải - Bước 3)
+    const shotBadge = document.getElementById("ws3ShotBadge");
+    const propNum = document.getElementById("propShotNumTag");
+    const propName = document.getElementById("propShotName");
+    const propAsset = document.getElementById("propAssetSelect");
+    const btnBrowse = document.getElementById("btnPropBrowse");
+    const propMotion = document.getElementById("propMotionSelect");
+    const propDur = document.getElementById("propDuration");
+    const propTrans = document.getElementById("propTransitionSelect");
+    const propTitle = document.getElementById("propTitle");
+    const mini1 = document.getElementById("propMini1");
+    const mini2 = document.getElementById("propMini2");
+    const mini3 = document.getElementById("propMini3");
+
+    if (!s) {
+      // BƯỚC 2: Ẩn trình phát video, thay bằng khung xám tối & icon thư mục gạch chéo
+      if (emptyPlaceholder) emptyPlaceholder.style.display = "flex";
+      if (overlayTop) overlayTop.style.display = "none";
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#0f1420";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      if (timeText) timeText.textContent = "00:00 / 00:00";
+      if (scrubberFill) scrubberFill.style.width = "0%";
+      if (playBtn) {
+        playBtn.disabled = true;
+        playBtn.style.opacity = "0.4";
+        playBtn.style.cursor = "not-allowed";
+      }
+
+      // BƯỚC 3: Dọn sạch & vô hiệu hóa Bảng thuộc tính phân cảnh
+      if (shotBadge) shotBadge.textContent = "Chưa có phân cảnh";
+      if (propNum) propNum.textContent = "";
+      if (propName) {
+        propName.value = "";
+        propName.placeholder = "--";
+        propName.disabled = true;
+      }
+      if (propAsset) {
+        propAsset.innerHTML = '<option value="" disabled selected>Bản vẽ liên kết</option>';
+        propAsset.disabled = true;
+      }
+      if (btnBrowse) btnBrowse.disabled = true;
+      if (propMotion) {
+        propMotion.value = "";
+        propMotion.disabled = true;
+      }
+      if (propDur) {
+        propDur.value = "0";
+        propDur.placeholder = "0";
+        propDur.disabled = true;
+      }
+      if (propTrans) {
+        propTrans.value = "";
+        propTrans.disabled = true;
+      }
+      if (propTitle) {
+        propTitle.value = "";
+        propTitle.placeholder = "--";
+        propTitle.disabled = true;
+      }
+      if (mini1) mini1.textContent = "--";
+      if (mini2) mini2.textContent = "--";
+      if (mini3) mini3.textContent = "--";
+
+      // BƯỚC 5: Vô hiệu hóa các nút hành động
+      if (btnPlayAll) {
+        btnPlayAll.disabled = true;
+        btnPlayAll.style.opacity = "0.4";
+        btnPlayAll.style.cursor = "not-allowed";
+      }
+      if (btnNextStep3) {
+        btnNextStep3.disabled = true;
+        btnNextStep3.style.opacity = "0.4";
+        btnNextStep3.style.cursor = "not-allowed";
+      }
+      return;
+    }
+
+    // Khi CÓ phân cảnh được chọn: Kích hoạt đầy đủ
+    if (emptyPlaceholder) emptyPlaceholder.style.display = "none";
+    if (overlayTop) overlayTop.style.display = "flex";
+    if (shotBadge) shotBadge.textContent = `Cảnh ${s.num} - ${s.name}`;
+    if (propNum) propNum.textContent = `#${s.num}`;
+
+    if (propName) {
+      propName.disabled = false;
+      propName.value = s.name;
+    }
+    if (propAsset) {
+      propAsset.disabled = false;
+      propAsset.innerHTML = "";
+      if (this.state.assets.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = s.assetId || "def";
+        opt.textContent = "Bản vẽ: " + (s.name || "Mặc định");
+        propAsset.appendChild(opt);
+      } else {
+        this.state.assets.forEach(a => {
+          const opt = document.createElement("option");
+          opt.value = a.id;
+          opt.textContent = `${a.typeName}: ${a.name}`;
+          if (a.id === s.assetId) opt.selected = true;
+          propAsset.appendChild(opt);
+        });
+      }
+    }
+    if (btnBrowse) btnBrowse.disabled = false;
+
+    if (propMotion) {
+      propMotion.disabled = false;
+      propMotion.value = s.motion;
+    }
+    if (propDur) {
+      propDur.disabled = false;
+      propDur.value = s.duration;
+    }
+    if (propTrans) {
+      propTrans.disabled = false;
+      propTrans.value = s.transition;
+    }
+    if (propTitle) {
+      propTitle.disabled = false;
+      propTitle.value = s.title;
+    }
+    if (mini1) mini1.textContent = s.title ? s.title.slice(0, 10) : "--";
+    if (mini2) mini2.textContent = s.subtitle ? s.subtitle.slice(0, 10) : "--";
+    if (mini3) mini3.textContent = s.motion ? s.motion.toUpperCase() : "--";
+
+    if (playBtn) {
+      playBtn.disabled = false;
+      playBtn.style.opacity = "1";
+      playBtn.style.cursor = "pointer";
+    }
+    if (btnPlayAll) {
+      btnPlayAll.disabled = false;
+      btnPlayAll.style.opacity = "1";
+      btnPlayAll.style.cursor = "pointer";
+    }
+    if (btnNextStep3) {
+      btnNextStep3.disabled = false;
+      btnNextStep3.style.opacity = "1";
+      btnNextStep3.style.cursor = "pointer";
+    }
   },
 
   updateActiveShotProp(field, val) {
+    if (!this.state.shots || this.state.selectedShotIndex === null) return;
     this.state.shots[this.state.selectedShotIndex][field] = val;
     this.calculateTotalDuration();
     this.renderMultiTrackTimeline();
@@ -1643,44 +1905,54 @@ const GlobalStore = {
     const vTrack = document.getElementById("tlTrackVideo");
     const aTrack = document.getElementById("tlTrackAudio");
     const sTrack = document.getElementById("tlTrackSub");
+    const title = document.getElementById("timelineTopTitle");
+    const ruler = document.getElementById("timelineRulerTrack");
     if (!vTrack) return;
 
     vTrack.innerHTML = "";
     aTrack.innerHTML = "";
     sTrack.innerHTML = "";
 
-    const subLabels = [
-      'TỔNG THỂ DỰ ÁN',
-      'BÌNH ĐỒ TÌM TUYẾN',
-      'MÔ PHỎNG 3D',
-      'MẶT CẮT NGANG',
-      'TRẮC DỌC & CAO ĐỘ',
-      'CÔNG TRÌNH CẦU',
-      'HỆ THỐNG THOÁT',
-      'HOÀN THIỆN ĐƯỜNG'
-    ];
+    const hasShots = this.state.shots && this.state.shots.length > 0;
 
+    // BƯỚC 4: Nếu không có phân cảnh, hiển thị bộ khung rỗng + dòng text chìm
+    if (!hasShots) {
+      if (title) title.textContent = "Timeline Dự Án";
+      if (ruler) ruler.innerHTML = "<span>0:00</span><span>0:10</span><span>0:20</span><span>0:30</span><span>0:40</span><span>0:50</span>";
+      vTrack.innerHTML = '<div class="timeline-empty-cta">Kéo thả phân cảnh vào đây</div>';
+      return;
+    }
+
+    // Khi có phân cảnh: render đầy đủ thumbnail, waveform, sub
+    const count = this.state.shots.length;
+    if (title) {
+      title.textContent = `⏱️ Timeline Dự Án ${count < 10 ? '0' + count : count} Phân Cảnh Chuẩn Civil 3D`;
+    }
+
+    if (ruler) {
+      const tot = this.state.playback.totalDuration || 40;
+      ruler.innerHTML = `<span>0:00</span><span>0:${Math.round(tot*0.25)}</span><span>0:${Math.round(tot*0.5)}</span><span>0:${Math.round(tot*0.75)}</span><span>0:${tot}</span>`;
+    }
+
+    const subLabels = [
+      'TỔNG THỂ DỰ ÁN', 'BÌNH ĐỒ TÌM TUYẾN', 'MÔ PHỎNG 3D', 'MẶT CẮT NGANG',
+      'TRẮC DỌC & CAO ĐỘ', 'CÔNG TRÌNH CẦU', 'HỆ THỐNG THOÁT', 'HOÀN THIỆN ĐƯỜNG'
+    ];
     const sceneNames = [
-      '01 Tổng quan',
-      '02 Bình đồ',
-      '03 Phối cảnh tuyến',
-      '04 Mặt cắt',
-      '05 Trắc dọc',
-      '06 Cầu vượt',
-      '07 Cống thoát',
-      '08 Kết luận'
+      '01 Tổng quan', '02 Bình đồ', '03 Phối cảnh tuyến', '04 Mặt cắt',
+      '05 Trắc dọc', '06 Cầu vượt', '07 Cống thoát', '08 Kết luận'
     ];
 
     this.state.shots.forEach((s, idx) => {
       const asset = this.state.assets.find(a => a.id === s.assetId) || this.state.assets[0];
-      const c = this.getAssetCanvas(asset);
+      const c = asset ? this.getAssetCanvas(asset) : null;
 
       // Clip Video
       const clip = document.createElement("div");
       clip.className = `tl-clip-video ${idx === this.state.selectedShotIndex ? 'active' : ''}`;
       clip.style.width = `${Math.max(90, s.duration * 18)}px`;
       const name = sceneNames[idx] || `${s.num} ${s.name}`;
-      clip.innerHTML = `<img src="${c.toDataURL()}" /><span>${name}</span>`;
+      clip.innerHTML = `${c ? `<img src="${c.toDataURL()}" />` : ''}<span>${name}</span>`;
       clip.onclick = () => {
         GlobalStore.selectShot(idx);
       };
@@ -1704,6 +1976,12 @@ const GlobalStore = {
   },
 
   selectShot(idx) {
+    if (!this.state.shots || this.state.shots.length === 0) {
+      this.state.selectedShotIndex = null;
+      this.populatePropertiesCol();
+      this.renderMultiTrackTimeline();
+      return;
+    }
     this.state.selectedShotIndex = idx;
     this.populatePropertiesCol();
     this.renderMultiTrackTimeline();
@@ -1716,34 +1994,65 @@ const GlobalStore = {
   },
 
   addShot() {
+    if (!this.state.assets || this.state.assets.length === 0) {
+      const defAsset = {
+        id: "bd_def_1",
+        type: "binh_do",
+        typeName: "Bình đồ tuyến",
+        name: "Bình đồ tim tuyến thiết kế.dwg",
+        size: "14.2 MB",
+        res: "3840x2160",
+        progress: 100,
+        drawType: "alignment",
+        title: "BÌNH ĐỒ TIM TUYẾN THIẾT KẾ CIVIL 3D"
+      };
+      this.state.assets.push(defAsset);
+      this.renderAssetTable();
+    }
+
     const count = this.state.shots.length + 1;
     const newShot = {
       id: "s_" + Date.now(),
       num: count < 10 ? `0${count}` : `${count}`,
-      name: `Cảnh ${count}`,
+      name: `Phân cảnh ${count}`,
       duration: 5,
       assetId: this.state.assets[0].id,
-      motion: "pan_left_right",
+      motion: "zoom_in",
       transition: "crossfade",
-      title: "CHI TIẾT KỸ THUẬT BỔ SUNG",
-      subtitle: "Autodesk Civil 3D",
-      script: "Phân cảnh kỹ thuật bổ sung cho tuyến đường cao tốc."
+      title: `PHÂN CẢNH THIẾT KẾ KỸ THUẬT #${count < 10 ? '0' + count : count}`,
+      subtitle: "Autodesk Civil 3D & InfraWorks",
+      script: `Phân cảnh kỹ thuật số ${count} cho dự án hạ tầng giao thông.`
     };
     this.state.shots.push(newShot);
     this.calculateTotalDuration();
-    this.renderMultiTrackTimeline();
+    this.buildFullScriptFromShots();
+    this.renderWorkspace2UI();
     this.selectShot(this.state.shots.length - 1);
+    this.triggerAutoSave();
+  },
+
+  handleTimelineDrop(event) {
+    event.preventDefault();
+    this.addShot();
   },
 
   drawEditorFrame(tSec) {
     const canvas = document.getElementById("editorCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+
+    if (!this.state.shots || this.state.shots.length === 0 || this.state.selectedShotIndex === null || this.state.selectedShotIndex < 0) {
+      ctx.fillStyle = "#0f1420";
+      ctx.fillRect(0, 0, 1200, 720);
+      return;
+    }
+
     const activeShot = this.state.shots[this.state.selectedShotIndex];
     if (!activeShot) return;
 
     const asset = this.state.assets.find(a => a.id === activeShot.assetId) || this.state.assets[0];
-    const imgCanvas = this.getAssetCanvas(asset);
+    const imgCanvas = asset ? this.getAssetCanvas(asset) : null;
+    if (!imgCanvas) return;
 
     ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 1200, 720);
 
@@ -1780,7 +2089,7 @@ const GlobalStore = {
     ctx.fillText(activeShot.subtitle || (activeShot.script.substr(0, 95) + "..."), 46, 670);
 
     // Scrubber update
-    const pct = Math.min(100, (tSec / this.state.playback.totalDuration) * 100);
+    const pct = this.state.playback.totalDuration > 0 ? Math.min(100, (tSec / this.state.playback.totalDuration) * 100) : 0;
     const scrubEl = document.getElementById("ws3ScrubberFill");
     if (scrubEl) scrubEl.style.width = `${pct}%`;
     const s = Math.floor(tSec % 60);
@@ -1790,6 +2099,7 @@ const GlobalStore = {
   },
 
   togglePlay() {
+    if (!this.state.shots || this.state.shots.length === 0) return;
     this.state.playback.isPlaying = !this.state.playback.isPlaying;
     const btn = document.getElementById("ws3PlayBtn");
     if (btn) btn.textContent = this.state.playback.isPlaying ? "⏸️" : "▶️";
@@ -1811,6 +2121,7 @@ const GlobalStore = {
   },
 
   playFromStart() {
+    if (!this.state.shots || this.state.shots.length === 0) return;
     this.state.playback.currentTime = 0;
     if (!this.state.playback.isPlaying) this.togglePlay();
   },
@@ -2407,6 +2718,9 @@ const GlobalStore = {
     this.state.assets = JSON.parse(JSON.stringify(tpl.assets));
     this.state.shots = JSON.parse(JSON.stringify(tpl.shots));
     this.state.selectedShotIndex = 0;
+    this.state.currentScene = this.state.shots[0];
+    this.state.timelineItems = this.state.shots;
+    this.state.subtitleData = this.state.shots.map(x => x.title);
 
     // 3. Xóa cache canvas để vẽ lại theo dự án mới
     this.canvasCache.clear();
