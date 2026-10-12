@@ -1,16 +1,15 @@
-FROM pytorch/pytorch:2.1.2-cuda11.8-cudnn8-devel
-# GPU Worker Image — Phase 0 Geometry Pipeline
+# GPU Worker Image — Phase 0 & Phase 1 Geometry Pipeline
+# Single reproducible base image with pinned CUDA, PyTorch, COLMAP, and Nerfstudio.
 #
-# License audit (calibration_required: true):
-#   - pytorch/pytorch: BSD-style (pytorch.org/get-started)
-#   - COLMAP: BSD-3-Clause (https://github.com/colmap/colmap)
-#   - FFmpeg: LGPL 2.1+ with optional GPL components (we use apt-get build — distro decides)
-#   - Nerfstudio/splatfacto: Apache 2.0 (https://github.com/nerfstudio-project/nerfstudio)
-#   NOTE: Verify all licenses before commercial distribution.
+# License notes:
+#   - PyTorch: BSD-3-Clause
+#   - COLMAP: BSD-3-Clause
+#   - FFmpeg: LGPL 2.1+
+#   - Nerfstudio / Splatfacto: Apache 2.0
+#   - gsplat: Apache 2.0
 #
-# Usage:
+# Build command:
 #   docker build -f apps/api/Dockerfile.gpu -t cinevideo-gpu:latest .
-#   docker run --gpus all cinevideo-gpu:latest python -c "from app.services.capabilities import get_capabilities; print(get_capabilities())"
 #
 # Startup capability check:
 #   docker run --gpus all cinevideo-gpu:latest python scripts/check_gpu_env.py
@@ -19,11 +18,7 @@ FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
 
 WORKDIR /app
 
-# Install system dependencies (COLMAP, FFMPEG)
-# ---- System dependencies -----------------------------------------------
-# colmap:  BSD-3-Clause, installed from apt (Ubuntu 22.04 apt)
-# ffmpeg:  LGPL 2.1+ (apt build, no GPL encoder linked here)
-# git:     GPL 2 (build-time only, not distributed)
+# ---- System dependencies ----------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     colmap \
@@ -31,30 +26,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Install nerfstudio (which provides ns-train and ns-render)
-# Note: In a real production setup, one might use a pre-built wheel or a more specific installation script.
-RUN pip install --no-cache-dir nerfstudio==1.1.3
-# ---- Nerfstudio (Apache 2.0) -------------------------------------------
-# Pin version for reproducibility. Bump only after integration testing.
+# ---- 3D Gaussian Splatting & Nerfstudio -------------------------------------
 RUN pip install --no-cache-dir \
     "nerfstudio==1.1.3" \
     "gsplat>=1.3,<2"
 
-# Setup our API application
-# ---- Application dependencies -------------------------------------------
+# ---- Application & internal packages ----------------------------------------
 COPY apps/api/pyproject.toml /app/pyproject.toml
 COPY apps/api/app /app/app
-RUN pip install --no-cache-dir .
 COPY packages /app/packages
-COPY scripts /app/scripts
-RUN pip install --no-cache-dir -e .
+COPY apps/api/scripts /app/scripts
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-# ---- Startup health check -----------------------------------------------
-COPY apps/api/scripts/check_gpu_env.py /app/scripts/check_gpu_env.py
+ENV PYTHONPATH="/app"
 
-# Expose internal port (API mode)
+RUN pip install --no-cache-dir .
+
 EXPOSE 8000
 
-# Default: Run capability check (override for API or worker mode)
+# Default entry point runs environment capability check.
+# Can be overridden with uvicorn or worker in docker-compose.
 CMD ["python", "scripts/check_gpu_env.py"]
