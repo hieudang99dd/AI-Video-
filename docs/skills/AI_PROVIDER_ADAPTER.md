@@ -37,3 +37,4 @@ class AIProviderAdapter:
 
 - **Timeout:** Mỗi yêu cầu AI clip có giới hạn thời gian chạy tối đa (mặc định 180 giây). Nếu quá thời gian, job tự hủy kết nối để giải phóng tài nguyên.
 - **Lỗi kết nối hoặc OOM:** Nếu ComfyUI sập hoặc GPU hết VRAM (CUDA Out Of Memory), hệ thống ghi log chi tiết lỗi vào `job.provenance["ai_error"]` và tự động chuyển sang chế độ an toàn `2D_IMAGE_CAMERA` để bảo đảm người dùng vẫn nhận được video đầu ra.
+

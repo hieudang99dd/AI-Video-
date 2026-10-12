@@ -25,3 +25,4 @@ Tài liệu này đánh giá tính tương thích giấy phép của toàn bộ 
 1. **Không sao chép mã nguồn GPL-3.0 vào core codebase:** Mã nguồn trong `apps/api`, `apps/web` và `packages/*` tuân thủ các giấy phép thoáng (Permissive: MIT/Apache-2.0). Mọi tương tác với công cụ GPL như ComfyUI đều qua API giao thức mạng (Network Service Boundary).
 2. **FFmpeg Compliance:** Hệ thống sử dụng FFmpeg như một tiến trình độc lập (`subprocess.run`), truyền file qua hệ thống tệp và stdout/stderr, hoàn toàn đáp ứng điều kiện giấy phép LGPL/GPL mà không ảnh hưởng tới bản quyền mã nguồn của dự án.
 3. **Model Weights Disclaimer:** Dự án không lưu trữ sẵn hay bundle các checkpoint trọng số model AI nặng hoặc có điều khoản hạn chế thương mại. Người dùng có toàn quyền cấu hình adapter nếu có nhu cầu.
+

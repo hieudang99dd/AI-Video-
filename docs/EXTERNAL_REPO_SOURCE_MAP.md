@@ -19,3 +19,4 @@ Tài liệu này ghi nhận các repository, công cụ mã nguồn mở và tà
 1. **Clean Room Design:** Mọi logic xử lý nghiệp vụ, schema, models, services và API routes đều được viết mới độc lập, tuân thủ `SKILL_CANONICAL.md`.
 2. **Out-of-Process Isolation:** Các thành phần có giấy phép ràng buộc cao (GPL-3.0 như ComfyUI) chỉ được giao tiếp thông qua giao thức mạng HTTP/WebSocket REST/JSON API độc lập, giữ cho backend `AI-Video-` giữ nguyên tính độc lập.
 3. **No Hallucination for Technical Geometry:** Đối với các bản vẽ trắc dọc, bình đồ tuyến, mặt cắt ngang của Civil 3D / InfraWorks, ưu tiên bảo toàn tuyệt đối hình học nguồn qua `2D_IMAGE_CAMERA` và `3D_SCENE_CAMERA`.
+

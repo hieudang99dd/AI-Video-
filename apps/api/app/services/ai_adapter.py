@@ -82,3 +82,4 @@ class AIProviderAdapter:
 
 
 ai_adapter = AIProviderAdapter()
+

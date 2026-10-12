@@ -47,3 +47,4 @@ def test_ai_video_camera_declared_as_not_preserving_technical_geometry():
     ai_mode = catalog[CameraModeType.AI_VIDEO.value]
     assert ai_mode["preserves_technical_geometry"] is False
     assert ai_mode["is_3d_geometry"] is False
+

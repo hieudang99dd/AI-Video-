@@ -52,3 +52,4 @@ Mỗi Shot trong Storyboard được quản lý theo hợp đồng dữ liệu c
   2. Gán ảnh khác vào từng shot bất cứ lúc nào.
   3. Chỉnh sửa văn bản tiêu đề hiển thị, phụ đề kỹ thuật và thuyết minh.
   4. Đổi chế độ chuyển động camera giữa `2D_IMAGE_CAMERA` (pan/zoom an toàn) và `3D_SCENE_CAMERA` khi có dữ liệu.
+

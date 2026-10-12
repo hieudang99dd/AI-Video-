@@ -49,3 +49,4 @@ Thư mục ảnh (Civil 3D / InfraWorks)
 - **Nguyên tắc số 1:** Không bao giờ dùng AI tạo video ngẫu nhiên (text-to-video / image-to-video tự do) để làm sai lệch kích thước hình học, độ dốc, số làn xe hoặc kết cấu công trình đã thiết kế trong Civil 3D.
 - **Bản vẽ 2D (Bình đồ, Trắc dọc, Mặt cắt):** Luôn dùng chế độ `2D_IMAGE_CAMERA` với chuyển động camera tịnh tiến có kiểm soát (Pan dọc theo lý trình tim tuyến từ đầu tuyến đến cuối tuyến, Zoom nhẹ tập trung vào điểm nút quan trọng nhưng không vượt quá 1.35x để bảo toàn độ sắc nét của chữ số kỹ thuật).
 - **Phối cảnh 3D xuất từ InfraWorks:** Nếu có chuỗi ảnh chụp góc liên tục xung quanh nút giao/cầu, kích hoạt `3D_SCENE_CAMERA`. Nếu chỉ có 1 ảnh phối cảnh tĩnh, dùng chuyển động `2D_IMAGE_CAMERA` (slow dolly-in hoặc pedestal up) để tạo cảm giác cinematic trang nhã mà không làm biến dạng mô hình.
+

@@ -53,3 +53,4 @@ Hệ thống **tuyệt đối không đánh dấu `status = "completed"`** nếu
 4. **Khả năng giải mã:** Gọi FFprobe hoặc kiểm tra header container của video để bảo đảm không bị lỗi hỏng (corrupted bitstream).
 
 Nếu không đạt QC, job được chuyển sang `status = "failed"` kèm thông báo lỗi chi tiết để hỗ trợ retry/resume.
+

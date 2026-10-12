@@ -33,3 +33,4 @@ Mỗi job render khi hoàn tất đều lưu lại các chỉ số sau vào `Ren
 - `effective_fps`: Tốc độ sinh khung hình (frames / giây).
 - `hardware_mode`: `"cpu_safe"` hoặc `"cuda_accelerated"`.
 - `peak_ram_mb`: Mức tiêu thụ bộ nhớ RAM cao nhất (nếu có telemetry).
+

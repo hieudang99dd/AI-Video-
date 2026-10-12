@@ -39,3 +39,4 @@ $$\text{Score} = w_s \cdot S_{\text{smooth}} + w_c \cdot S_{\text{clearance}} + 
   1. Tự động đề xuất nắn keyframe.
   2. Báo lý do cụ thể trong `rejection_reasons`.
   3. Tự động fallback về `2D_IMAGE_CAMERA` an toàn nếu người dùng muốn xuất video ngay lập tức.
+

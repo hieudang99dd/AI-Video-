@@ -155,3 +155,4 @@ def validate_camera_motion(
         reasons.append("AI Video Camera là chế độ tùy chọn và chưa được bật trong cấu hình môi trường.")
 
     return len(reasons) == 0, reasons
+

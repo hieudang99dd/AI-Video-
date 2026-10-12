@@ -51,3 +51,4 @@ def test_generate_infrastructure_storyboard_distributes_multiple_assets():
     assert storyboard[0]["asset_ids"] == ["asset-0"]
     assert storyboard[1]["asset_ids"] == ["asset-1"]
     assert storyboard[7]["asset_ids"] == ["asset-7"]
+

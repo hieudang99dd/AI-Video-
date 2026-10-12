@@ -27,3 +27,4 @@ def test_ai_adapter_generate_clip_raises_when_disabled():
 def test_singleton_ai_adapter_is_safe():
     status = ai_adapter.is_available()
     assert status["available"] is False
+

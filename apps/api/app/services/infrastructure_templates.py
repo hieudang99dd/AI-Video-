@@ -164,3 +164,4 @@ def generate_infrastructure_storyboard(project_name: str, asset_ids: list[str]) 
         storyboard.append(shot_item)
 
     return storyboard
+

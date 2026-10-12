@@ -85,3 +85,15 @@ def test_api_apply_infrastructure_template_creates_storyboard():
     assert job["type"] == "timeline"
     assert job["status"] == "queued"
     assert job["provenance"]["shot_count"] == 8
+
+
+def test_ui_route_returns_html():
+    res = client.get("/")
+    assert res.status_code == 200
+    assert "text/html" in res.headers["content-type"]
+    assert "AI-Video" in res.text
+
+    res_ui = client.get("/ui")
+    assert res_ui.status_code == 200
+    assert "text/html" in res_ui.headers["content-type"]
+
