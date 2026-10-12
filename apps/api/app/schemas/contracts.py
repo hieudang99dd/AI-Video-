@@ -60,6 +60,8 @@ class ShotOut(BaseModel):
     subtitle_text: str | None = None
     narration_text: str | None = None
     audio_uri: str | None = None
+    keyframes: list[dict] = []
+    camera_path_doc: dict | None = None
     model_config = {"from_attributes": True}
 
 
@@ -114,3 +116,54 @@ class RenderJobOut(BaseModel):
     error: str | None
     provenance: dict
     model_config = {"from_attributes": True}
+
+
+class CameraKeyframeSchema(BaseModel):
+    id: str = ""
+    image_id: str | None = None
+    position: tuple[float, float, float]
+    rotation_quaternion: tuple[float, float, float, float]
+    quaternion_order: str = "xyzw"
+    timestamp_sec: float = Field(ge=0.0)
+    focal_length_mm: float = Field(default=32.0, gt=0.0)
+    sensor_width_mm: float = Field(default=36.0, gt=0.0)
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    locked: bool = False
+
+
+class CameraPathDocSchema(BaseModel):
+    schema_version: int = 1
+    scene_id: str | None = None
+    duration_sec: float = Field(gt=0.0, le=60.0)
+    fps: int = Field(default=30, ge=12, le=60)
+    width: int = Field(default=1920, gt=0)
+    height: int = Field(default=1080, gt=0)
+    easing: str = Field(default="cinematic")
+    path_type: str = Field(default="catmull_rom")
+    tension: float = Field(default=0.5, ge=0.0, le=1.0)
+    keyframes: list[CameraKeyframeSchema] = Field(min_length=2)
+    metadata: dict = Field(default_factory=dict)
+
+
+class CameraPathValidationResultSchema(BaseModel):
+    ok: bool
+    score: float
+    rejection_reasons: list[str] = Field(default_factory=list)
+    metrics: dict = Field(default_factory=dict)
+
+
+class SceneGroupOut(BaseModel):
+    id: str
+    image_ids: list[str]
+    size: int
+    confidence: float
+    mode: str
+    edge_count: int = 0
+
+
+class SceneGroupingResultOut(BaseModel):
+    groups: list[SceneGroupOut]
+    unresolved: list[str]
+    diagnostics: dict
+
+

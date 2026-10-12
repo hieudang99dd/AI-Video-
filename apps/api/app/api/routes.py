@@ -14,16 +14,25 @@ from app.models.entities import ImageAsset, Project, RenderJob, Scene, Shot
 from app.schemas.contracts import (
     ApplyTemplateRequest,
     AssetOut,
+    CameraKeyframeSchema,
+    CameraPathDocSchema,
+    CameraPathValidationResultSchema,
     ProjectCreate,
     ProjectOut,
     RenderJobOut,
     RenderRequest,
     SceneCreate,
+    SceneGroupOut,
+    SceneGroupingResultOut,
     SceneOut,
     ShotCreate,
     ShotOut,
     TimelineRenderRequest,
 )
+from app.services.geometry_backend import get_geometry_backend
+from packages.geometry.camera_path import CameraKeyframeDoc, CameraPathDocument, CameraPathError
+from packages.path_validation import PathValidator
+from packages.scene_grouping.grouper import SceneGrouper
 from app.services.ai_adapter import ai_adapter
 from app.services.camera_modes import get_camera_modes_catalog, validate_camera_motion
 from app.services.capabilities import get_capabilities
@@ -140,6 +149,45 @@ def analyze_project(project_id: str, db: Session = Depends(get_db)):
 # --------------------------------------------------------------------------- #
 # Scenes (Phase 0 geometry spine: images -> reconstruction -> representation)
 # --------------------------------------------------------------------------- #
+@router.post("/projects/{project_id}/group-scenes", response_model=SceneGroupingResultOut)
+def group_project_scenes(project_id: str, db: Session = Depends(get_db)):
+    """Cluster project assets into geometric scene candidates using SceneGrouper."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(404, "project not found")
+    assets = list(db.scalars(select(ImageAsset).where(ImageAsset.project_id == project_id)))
+    if not assets:
+        raise HTTPException(400, "project has no assets to group")
+    asset_ids = [a.id for a in assets]
+    grouper = SceneGrouper()
+    relations = []
+    colmap_db = storage.resolve(f"local://projects/{project_id}/database.db")
+    if colmap_db.exists():
+        try:
+            from packages.colmap.repository import read_verified_pairs
+            pairs = read_verified_pairs(colmap_db)
+            relations = SceneGrouper.from_verified_pairs(pairs)
+        except Exception:
+            relations = []
+
+    result = grouper.group(asset_ids, relations)
+    return SceneGroupingResultOut(
+        groups=[
+            SceneGroupOut(
+                id=g.id,
+                image_ids=list(g.image_ids),
+                size=g.size,
+                confidence=round(g.confidence, 4),
+                mode=g.mode,
+                edge_count=g.edge_count,
+            )
+            for g in result.groups
+        ],
+        unresolved=list(result.unresolved),
+        diagnostics=result.diagnostics,
+    )
+
+
 @router.post("/projects/{project_id}/scenes", response_model=SceneOut)
 def create_scene(project_id: str, body: SceneCreate, db: Session = Depends(get_db)):
     """Group images into a scene candidate; reconstruction is a separate job."""
@@ -338,6 +386,132 @@ def get_shot(shot_id: str, db: Session = Depends(get_db)):
     shot = db.get(Shot, shot_id)
     if not shot: raise HTTPException(404, "shot not found")
     return shot
+
+
+@router.get("/shots/{shot_id}/camera-path", response_model=CameraPathDocSchema)
+def get_camera_path(shot_id: str, db: Session = Depends(get_db)):
+    shot = db.get(Shot, shot_id)
+    if not shot:
+        raise HTTPException(404, "shot not found")
+    if shot.camera_path_doc:
+        return CameraPathDocSchema(**shot.camera_path_doc)
+
+    # Check if a reconstructed scene is available to build keyframes from registered cameras
+    scene = select_scene_for_shot(db, shot)
+    if scene and scene.representation_uri:
+        try:
+            backend = get_geometry_backend()
+            doc = backend.build_camera_path(
+                scene.representation_uri,
+                duration_sec=shot.duration_sec,
+                fps=shot.fps,
+                width=settings.render_final_width,
+                height=settings.render_final_height,
+                easing=shot.easing,
+            )
+            data = doc.to_dict()
+            shot.camera_path_doc = data
+            db.commit()
+            return CameraPathDocSchema(**data)
+        except Exception:
+            pass
+
+    # Default baseline 2-keyframe forward camera path
+    default_doc = CameraPathDocument(
+        keyframes=[
+            CameraKeyframeDoc(
+                id="k1",
+                position=(0.0, 0.0, 0.0),
+                rotation_quaternion=(0.0, 0.0, 0.0, 1.0),
+                timestamp_sec=0.0,
+            ),
+            CameraKeyframeDoc(
+                id="k2",
+                position=(0.0, 0.0, 1.0),
+                rotation_quaternion=(0.0, 0.0, 0.0, 1.0),
+                timestamp_sec=shot.duration_sec,
+            ),
+        ],
+        duration_sec=shot.duration_sec,
+        fps=shot.fps,
+        width=settings.render_final_width,
+        height=settings.render_final_height,
+        easing=shot.easing,
+    )
+    return CameraPathDocSchema(**default_doc.to_dict())
+
+
+@router.put("/shots/{shot_id}/camera-path", response_model=CameraPathDocSchema)
+def update_camera_path(shot_id: str, body: CameraPathDocSchema, db: Session = Depends(get_db)):
+    shot = db.get(Shot, shot_id)
+    if not shot:
+        raise HTTPException(404, "shot not found")
+
+    try:
+        doc = CameraPathDocument.from_dict(body.model_dump())
+        doc.validate()
+    except (CameraPathError, ValueError) as exc:
+        raise HTTPException(400, f"invalid camera path: {exc}")
+
+    shot.camera_path_doc = doc.to_dict()
+    shot.duration_sec = doc.duration_sec
+    shot.fps = doc.fps
+    shot.easing = doc.easing
+    shot.keyframes = [k.to_dict() for k in doc.keyframes]
+    db.commit()
+    return CameraPathDocSchema(**shot.camera_path_doc)
+
+
+@router.post("/shots/{shot_id}/camera-path/validate", response_model=CameraPathValidationResultSchema)
+def validate_camera_path(
+    shot_id: str,
+    body: CameraPathDocSchema | None = None,
+    db: Session = Depends(get_db),
+):
+    shot = db.get(Shot, shot_id)
+    if not shot:
+        raise HTTPException(404, "shot not found")
+
+    if body is not None:
+        try:
+            doc = CameraPathDocument.from_dict(body.model_dump())
+            doc.validate()
+        except (CameraPathError, ValueError) as exc:
+            return CameraPathValidationResultSchema(
+                ok=False,
+                score=0.0,
+                rejection_reasons=[str(exc)],
+                metrics={},
+            )
+    elif shot.camera_path_doc:
+        doc = CameraPathDocument.from_dict(shot.camera_path_doc)
+    else:
+        raise HTTPException(400, "no camera path provided or saved for shot")
+
+    proxy = None
+    scene = select_scene_for_shot(db, shot)
+    if scene and scene.representation_uri:
+        try:
+            backend = get_geometry_backend()
+            proxy = backend.scene_proxy(scene.representation_uri)
+        except Exception:
+            proxy = None
+
+    validator = PathValidator(
+        {
+            "max_angular_velocity_deg_sec": settings.max_angular_velocity_deg_sec,
+            "max_focal_change_ratio": settings.max_focal_change_ratio,
+            "min_score": settings.min_render_score,
+        }
+    )
+    samples = validator.sample_path(doc)
+    result = validator.validate(samples, proxy)
+    return CameraPathValidationResultSchema(
+        ok=result.ok,
+        score=round(result.score, 4),
+        rejection_reasons=list(result.rejection_reasons),
+        metrics=dict(result.metrics),
+    )
 
 
 def _new_job(db: Session, shot: Shot, kind: str, width: int, height: int, mode: str | None = None) -> RenderJob:
