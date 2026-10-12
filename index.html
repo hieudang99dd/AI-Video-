@@ -693,8 +693,8 @@
       <div class="step-item" id="stepTab-3" onclick="GlobalStore.setStep(3)">
         <div class="step-circle" id="stepCircle-3">3</div>
         <div class="step-text">
-          <span class="step-title">3. Biên tập phân cảnh</span>
-          <span class="step-sub">Camera & Multi-track</span>
+          <span class="step-title">3. Biên tập phân cảnh (Camera & Multi-track)</span>
+          <span class="step-sub">Sắp xếp & chỉnh sửa</span>
         </div>
       </div>
       <div class="step-item" id="stepTab-4" onclick="GlobalStore.setStep(4)">
@@ -933,7 +933,7 @@
           <div class="ws3-multi-track-timeline">
             <div class="timeline-top-bar">
               <span class="timeline-top-title">
-                ⏱️ Timeline Dự Án (8 Phân Cảnh Chuẩn Civil 3D)
+                ⏱️ Timeline Dự Án 08 Phân Cảnh Chuẩn Civil 3D
               </span>
               <div style="display:flex; gap:6px;">
                 <button class="btn-editor-action" onclick="GlobalStore.addShot()">+ Thêm cảnh</button>
@@ -1176,7 +1176,7 @@ const GlobalStore = {
 
   init() {
     this.loadStandardCivilPackage();
-    this.setStep(1);
+    this.setStep(3);
     this.initWaveformUI();
   },
 
@@ -1507,6 +1507,28 @@ const GlobalStore = {
     aTrack.innerHTML = "";
     sTrack.innerHTML = "";
 
+    const subLabels = [
+      'TỔNG THỂ DỰ ÁN',
+      'BÌNH ĐỒ TÌM TUYẾN',
+      'MÔ PHỎNG 3D',
+      'MẶT CẮT NGANG',
+      'TRẮC DỌC & CAO ĐỘ',
+      'CÔNG TRÌNH CẦU',
+      'HỆ THỐNG THOÁT',
+      'HOÀN THIỆN ĐƯỜNG'
+    ];
+
+    const sceneNames = [
+      '01 Tổng quan',
+      '02 Bình đồ',
+      '03 Phối cảnh tuyến',
+      '04 Mặt cắt',
+      '05 Trắc dọc',
+      '06 Cầu vượt',
+      '07 Cống thoát',
+      '08 Kết luận'
+    ];
+
     this.state.shots.forEach((s, idx) => {
       const asset = this.state.assets.find(a => a.id === s.assetId) || this.state.assets[0];
       const c = this.getAssetCanvas(asset);
@@ -1514,25 +1536,27 @@ const GlobalStore = {
       // Clip Video
       const clip = document.createElement("div");
       clip.className = `tl-clip-video ${idx === this.state.selectedShotIndex ? 'active' : ''}`;
-      clip.style.width = `${Math.max(80, s.duration * 16)}px`;
-      clip.innerHTML = `<img src="${c.toDataURL()}" /><span>${s.num} ${s.name}</span>`;
+      clip.style.width = `${Math.max(90, s.duration * 18)}px`;
+      const name = sceneNames[idx] || `${s.num} ${s.name}`;
+      clip.innerHTML = `<img src="${c.toDataURL()}" /><span>${name}</span>`;
       clip.onclick = () => {
         GlobalStore.selectShot(idx);
       };
       vTrack.appendChild(clip);
 
-      // Clip Audio
+      // Clip Audio (Green capsule with waveform)
       const aClip = document.createElement("div");
       aClip.className = "tl-clip-audio";
-      aClip.style.width = `${Math.max(80, s.duration * 16)}px`;
-      aClip.innerHTML = `<span>🔊 Voicer ${s.duration}s</span>`;
+      aClip.style.width = `${Math.max(90, s.duration * 18)}px`;
+      aClip.innerHTML = `<span>Voice ${s.duration}s</span>`;
       aTrack.appendChild(aClip);
 
-      // Clip Subtitle
+      // Clip Subtitle (Purple capsule with complete non-cutoff uppercase label)
       const sClip = document.createElement("div");
       sClip.className = "tl-clip-subtitle";
-      sClip.style.width = `${Math.max(80, s.duration * 16)}px`;
-      sClip.innerHTML = `<span>💬 ${s.title ? s.title.substr(0, 15) : 'Sub'}...</span>`;
+      sClip.style.width = `${Math.max(90, s.duration * 18)}px`;
+      const label = subLabels[idx] || (s.title ? s.title.toUpperCase() : 'PHÂN CẢNH');
+      sClip.innerHTML = `<span>${label}</span>`;
       sTrack.appendChild(sClip);
     });
   },
