@@ -51,6 +51,11 @@
   - Trình biên tập Camera Path & Keyframes tương tác: hỗ trợ Motion Presets (Push-In, Orbit 360, Pan Ngang, Crane Fly-Through), thêm/xóa keyframe, kiểm tra tính hợp lệ (`validate`) với điểm số và lý do từ chối, và lưu trực tiếp lên server.
   - Nâng cấp quản lý Job & Deep QC Inspector: hỗ trợ hủy render (`cancel`), hiển thị chi tiết thông số FFprobe (container, codec, resolution, duration, audio stream, pixel format).
   - Bổ sung unit test `tests/unit/test_ui.py` kiểm thử các endpoint và thành phần UI (146 passed).
+- [x] **PR-14: Studio Suite NLE - Nâng Cấp Trình Biên Tập Phân Cảnh Chuyên Nghiệp**:
+  - Tích hợp HTML5 Canvas Viewport mô phỏng camera 2D/3D trực quan: hiển thị đường spline quỹ đạo Catmull-Rom, chóp nón frustum, điểm keyframe động, vector hướng nhìn, lưới 3x3 và khung an toàn Action/Title Safe.
+  - Xây dựng Multi-Track Timeline chuẩn NLE: Track Video phân cảnh, Track Keyframes hình thoi `◆` tương tác, Track Phụ đề & Lý trình Km, Track Dạng sóng Audio Waveform.
+  - Thanh Transport Controls: Play/Pause, tua đầu/cuối, tua ±1s, Scrubber đồng bộ thời gian thực, Timecode chuẩn SMPTE `00:00:00:00`.
+  - Bảng Inspector 3 Tabs chuyên nghiệp: 6 Motion Presets công trình, bảng Keyframes $X,Y,Z$ & Tiêu cự live-sync, Quality Gate Validator, thông số CAD/GIS & thuyết minh AI.
 
 ## Blockers & Trạng thái chưa kiểm chứng (Unverified / Blocked)
 
