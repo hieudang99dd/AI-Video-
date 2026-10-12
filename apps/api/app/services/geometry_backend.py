@@ -10,6 +10,14 @@ from typing import Protocol
 
 from app.core.config import settings
 from app.services.capabilities import get_capabilities
+from app.services.process_runner import (
+    ExecutableNotFoundError,
+    ProcessCancelledError,
+    ProcessNonZeroExitError,
+    ProcessResult,
+    ProcessTimeoutError,
+    run_process,
+)
 
 from packages.colmap.repository import DEFAULT_SCENE_CONFIG, ColmapRepository, ColmapSceneData
 from packages.geometry.camera_path import CameraPathDocument
@@ -127,16 +135,22 @@ class CapabilityGatedGeometryBackend:
     # ------------------------------------------------------------------ #
     # command execution
     # ------------------------------------------------------------------ #
-    def _run_command(self, args: list[str]) -> subprocess.CompletedProcess:
-        logger.info("geometry command: %s", " ".join(args))
+    def _run_command(
+        self,
+        args: list[str],
+        timeout_sec: float | None = 600.0,
+        cancel_check: Callable[[], bool] | None = None,
+    ) -> ProcessResult:
         try:
-            return subprocess.run(args, check=True, capture_output=True, text=True)
-        except FileNotFoundError as exc:
+            return run_process(args, timeout_sec=timeout_sec, cancel_check=cancel_check)
+        except ExecutableNotFoundError as exc:
             raise GeometryUnavailable(f"command not found: {args[0]}") from exc
-        except subprocess.CalledProcessError as exc:
-            detail = (exc.stderr or exc.stdout or "").strip()
-            logger.error("geometry command failed: %s | %s", " ".join(args), detail)
-            raise GeometryError(f"{args[0]} failed: {detail[-2000:]}") from exc
+        except ProcessTimeoutError as exc:
+            raise GeometryError(f"{args[0]} timed out after {timeout_sec}s: {exc}") from exc
+        except ProcessCancelledError as exc:
+            raise GeometryError(f"{args[0]} cancelled") from exc
+        except ProcessNonZeroExitError as exc:
+            raise GeometryError(f"{args[0]} failed: {exc}") from exc
 
     def _colmap(self) -> str:
         return shutil.which(self.colmap_path) or shutil.which("colmap") or self.colmap_path
@@ -149,6 +163,7 @@ class CapabilityGatedGeometryBackend:
         image_paths: list[Path],
         workdir: Path,
         expected_image_count: int | None = None,
+        cancel_check: Callable[[], bool] | None = None,
     ) -> GeometrySceneResult:
         """Run COLMAP SfM and return the sparse model + statistics.
 
@@ -167,10 +182,20 @@ class CapabilityGatedGeometryBackend:
         workdir = Path(workdir)
         images_dir = workdir / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
-        for source in image_paths:
+
+        # Build and write input manifest for provenance & traceability
+        manifest = []
+        for idx, source in enumerate(image_paths):
             target = images_dir / source.name
             if not target.exists():
                 shutil.copy2(source, target)
+            manifest.append({
+                "index": idx,
+                "filename": source.name,
+                "size_bytes": source.stat().st_size if source.exists() else 0,
+            })
+        manifest_path = workdir / "input_manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
         database = workdir / "database.db"
         sparse_dir = workdir / "sparse"
@@ -185,16 +210,18 @@ class CapabilityGatedGeometryBackend:
                 "--image_path", str(images_dir),
                 "--ImageReader.camera_model", settings.colmap_camera_model,
                 "--SiftExtraction.use_gpu", use_gpu,
-            ]
+            ],
+            cancel_check=cancel_check,
         )
-        self._run_command(self._matcher_command(colmap, database, use_gpu))
+        self._run_command(self._matcher_command(colmap, database, use_gpu), cancel_check=cancel_check)
         self._run_command(
             [
                 colmap, "mapper",
                 "--database_path", str(database),
                 "--image_path", str(images_dir),
                 "--output_path", str(sparse_dir),
-            ]
+            ],
+            cancel_check=cancel_check,
         )
 
         model_dir = self._best_model_dir(sparse_dir)
@@ -204,13 +231,15 @@ class CapabilityGatedGeometryBackend:
                 "--input_path", str(model_dir),
                 "--output_path", str(model_dir),
                 "--output_type", "TXT",
-            ]
+            ],
+            cancel_check=cancel_check,
         )
 
         scene = self.load_scene(model_dir, expected_image_count or len(image_paths))
         passed, reasons = scene.quality_gate(self._quality_config())
         metadata = scene.to_dict()
         metadata["workdir"] = str(workdir)
+        metadata["input_manifest"] = str(manifest_path)
         if not passed:
             raise GeometryQualityRejected(reasons, metadata=metadata)
 

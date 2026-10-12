@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     storage_backend: str = "local"
     storage_root: Path = _tmp / "cinevideo-storage"
     ffmpeg_path: str = "ffmpeg"
+    ffprobe_path: str = "ffprobe"
     colmap_path: str = "colmap"
     ns_train_path: str = "ns-train"
     ns_render_path: str = "ns-render"

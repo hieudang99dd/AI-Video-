@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -12,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from app.core.config import settings
 from app.services.capabilities import get_capabilities
 from app.services.geometry_backend import GeometryError, GeometryUnavailable, get_geometry_backend
+from app.services.process_runner import run_process
 
 from packages.geometry.camera_path import CameraPathDocument
 from packages.path_validation import PathValidator
@@ -24,20 +26,103 @@ class QualityControlError(ValueError):
     """Raised when an output MP4 fails quality control inspection."""
 
 
-def qc_video_output(video_path: Path, expected_duration: float | None = None) -> dict:
-    """Verify that the generated MP4 file exists, is non-empty, and satisfies basic video QC."""
+def qc_video_output(
+    video_path: Path,
+    expected_duration: float | None = None,
+    expected_fps: int | None = None,
+    expected_resolution: tuple[int, int] | None = None,
+    require_audio: bool = False,
+    duration_tolerance_sec: float = 1.0,
+) -> dict:
+    """Verify generated MP4 with file metrics and deep FFprobe inspection when available.
+
+    Adheres to docs/KE_HOACH_HOAN_THIEN_REPO.md Section 10.3 (P0 Output QC).
+    """
     video_path = Path(video_path)
     if not video_path.exists():
         raise QualityControlError(f"QC FAILED: Output video file not found at {video_path}")
     size = video_path.stat().st_size
     if size < 1024:
         raise QualityControlError(f"QC FAILED: Output video file size is too small ({size} bytes, expected > 1024)")
-    return {
+
+    ffprobe = shutil.which(settings.ffprobe_path) or shutil.which("ffprobe")
+    probe_report: dict = {
         "qc_passed": True,
         "file_size_bytes": size,
         "path": str(video_path),
         "expected_duration_sec": expected_duration,
+        "ffprobe_inspected": False,
     }
+
+    if not ffprobe:
+        probe_report["note"] = "FFprobe not available in host environment; basic file QC passed."
+        return probe_report
+
+    try:
+        proc = run_process(
+            [
+                ffprobe,
+                "-v", "quiet",
+                "-print_format", "json",
+                "-show_format",
+                "-show_streams",
+                str(video_path.resolve()),
+            ],
+            timeout_sec=15.0,
+        )
+        data = json.loads(proc.stdout)
+    except Exception as exc:
+        raise QualityControlError(f"QC FAILED: FFprobe inspection error: {exc}") from exc
+
+    streams = data.get("streams", [])
+    format_info = data.get("format", {})
+
+    video_streams = [s for s in streams if s.get("codec_type") == "video"]
+    audio_streams = [s for s in streams if s.get("codec_type") == "audio"]
+
+    if not video_streams:
+        raise QualityControlError(f"QC FAILED: No video stream found in {video_path}")
+
+    v_stream = video_streams[0]
+    codec_name = v_stream.get("codec_name")
+    pix_fmt = v_stream.get("pix_fmt")
+    width = int(v_stream.get("width", 0))
+    height = int(v_stream.get("height", 0))
+
+    actual_duration = None
+    if "duration" in format_info:
+        try:
+            actual_duration = float(format_info["duration"])
+        except (ValueError, TypeError):
+            pass
+
+    probe_report.update({
+        "ffprobe_inspected": True,
+        "format_name": format_info.get("format_name"),
+        "codec_name": codec_name,
+        "pixel_format": pix_fmt,
+        "width": width,
+        "height": height,
+        "actual_duration_sec": actual_duration,
+        "video_stream_count": len(video_streams),
+        "audio_stream_count": len(audio_streams),
+    })
+
+    if expected_resolution and (width, height) != expected_resolution:
+        raise QualityControlError(
+            f"QC FAILED: Resolution mismatch: got {width}x{height}, expected {expected_resolution[0]}x{expected_resolution[1]}"
+        )
+
+    if expected_duration is not None and actual_duration is not None:
+        if abs(actual_duration - expected_duration) > duration_tolerance_sec:
+            raise QualityControlError(
+                f"QC FAILED: Duration mismatch: got {actual_duration:.2f}s, expected {expected_duration:.2f}s (tolerance +/- {duration_tolerance_sec}s)"
+            )
+
+    if require_audio and not audio_streams:
+        raise QualityControlError(f"QC FAILED: Required audio stream is missing in {video_path}")
+
+    return probe_report
 
 
 def _apply_text_overlay(
@@ -140,7 +225,7 @@ def encode_frame_sequence(
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
             str(output),
         ]
-        subprocess.run(cmd, check=True)
+        run_process(cmd, timeout_sec=180.0, cancel_check=cancelled)
 
     progress(end, "Completed")
     return {"frames": len(frames), "fps": fps, "codec": "h264", "encoder": "ffmpeg_concat_v1"}
@@ -262,7 +347,7 @@ def concatenate_timeline(
             cmd.extend(["-c:v", "copy"])
 
         cmd.extend(["-movflags", "+faststart", str(output)])
-        subprocess.run(cmd, check=True)
+        run_process(cmd, timeout_sec=300.0, cancel_check=cancelled)
 
     qc = qc_video_output(output)
     progress(1.0, "Timeline assembled successfully")
