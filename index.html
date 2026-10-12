@@ -703,6 +703,68 @@
       from { opacity: 0; transform: scale(0.97); }
       to { opacity: 1; transform: scale(1); }
     }
+
+    /* DIALOG HỘP THOẠI CHUNG (QUẢN LÝ DỰ ÁN, CÀI ĐẶT, LỊCH SỬ, XEM BẢN VẼ) */
+    .app-dialog-box {
+      background: #0d1424;
+      border: 1px solid #0284c7;
+      border-radius: 14px;
+      width: 680px;
+      max-width: 95vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    .dialog-header {
+      padding: 16px 22px;
+      background: #111a2d;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dialog-header h3 {
+      font-size: 15.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; margin: 0;
+    }
+    .dialog-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      color: #cbd5e1;
+      font-size: 12.5px;
+    }
+    .dialog-footer {
+      padding: 14px 24px;
+      background: #0b111f;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-secondary {
+      background: #1e293b; border: 1px solid var(--border); color: #cbd5e1; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-primary-action {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9); border: none; color: #fff; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;
+    }
+    .btn-primary-action:hover { background: linear-gradient(135deg, #0369a1, #0284c7); }
+    .btn-danger-action {
+      background: #dc2626; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 600;
+    }
+    .btn-danger-action:hover { background: #b91c1c; }
+    .proj-item-card {
+      background: #111827; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; transition: all 0.15s;
+    }
+    .proj-item-card:hover { border-color: #38bdf8; background: #131d30; }
+    .history-item-row {
+      background: #101726; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+    }
     .catalog-header {
       padding: 18px 24px;
       background: #111a2d;
@@ -812,7 +874,7 @@
         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         <span>Tạo video</span>
       </li>
-      <li class="nav-item" onclick="alert('Quản lý dự án: Đang chọn Dự án Cao tốc Bắc - Nam Km10-Km35.')">
+      <li class="nav-item" onclick="GlobalStore.openProjectManagerModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         <span>Quản lý dự án</span>
       </li>
@@ -820,7 +882,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         <span>Thư viện mẫu</span>
       </li>
-      <li class="nav-item" onclick="alert('Cài đặt hệ thống: Phiên bản AI-Video v1.0.0 (Autodesk Civil 3D & InfraWorks Engine).')">
+      <li class="nav-item" onclick="GlobalStore.openSettingsModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>Cài đặt</span>
       </li>
@@ -851,7 +913,7 @@
         <button class="header-btn" onclick="GlobalStore.openTemplateModal()">
           <span>🎬 Mẫu video</span>
         </button>
-        <button class="header-btn" onclick="alert('Lịch sử: Đã lưu bản nháp lúc ' + new Date().toLocaleTimeString())">
+        <button class="header-btn" onclick="GlobalStore.openHistoryModal()">
           <span>🕒 Lịch sử</span>
         </button>
         <div class="user-profile">
@@ -936,7 +998,7 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:30px;"><input type="checkbox" checked /></th>
+                  <th style="width:30px;"><input type="checkbox" id="selectAllAssets" onchange="GlobalStore.toggleSelectAllAssets(this.checked)" checked /></th>
                   <th>Bản vẽ & Tên tệp</th>
                   <th>Phân loại</th>
                   <th>Dung lượng</th>
@@ -1096,7 +1158,7 @@
                   <select class="prop-select" id="propAssetSelect" disabled onchange="GlobalStore.updateActiveShotProp('assetId', this.value)">
                     <option value="" disabled selected>Bản vẽ liên kết</option>
                   </select>
-                  <button class="btn-prop-browse" id="btnPropBrowse" disabled onclick="document.getElementById('fileUploadInput').click()" title="Chọn tệp">...</button>
+                  <button class="btn-prop-browse" id="btnPropBrowse" disabled onclick="GlobalStore.openAssetPickerForCurrentShot()" title="Chọn bản vẽ liên kết">...</button>
                 </div>
               </div>
 
@@ -1136,6 +1198,12 @@
                   <div class="prop-mini-box" id="propMini2">--</div>
                   <div class="prop-mini-box" id="propMini3">--</div>
                 </div>
+              </div>
+
+              <!-- Thao tác phân cảnh (Nhân bản / Xóa cảnh) -->
+              <div style="display:flex; gap:6px; margin-top:8px;">
+                <button class="btn-secondary" id="btnDuplicateShot" disabled style="flex:1; opacity:0.4; cursor:not-allowed;" onclick="GlobalStore.duplicateCurrentShot()">📋 Nhân bản</button>
+                <button class="btn-danger-action" id="btnDeleteShot" disabled style="flex:1; opacity:0.4; cursor:not-allowed;" onclick="GlobalStore.deleteCurrentShot()">🗑️ Xóa cảnh</button>
               </div>
             </div>
           </div>
@@ -1377,6 +1445,138 @@
     </div>
   </div>
 
+  <!-- MODAL QUẢN LÝ DỰ ÁN (PROJECT MANAGER MODAL) -->
+  <div class="modal-overlay" id="projectManagerModal" onclick="if(event.target===this) GlobalStore.closeProjectManagerModal()">
+    <div class="app-dialog-box" style="width: 720px;">
+      <div class="dialog-header">
+        <h3>📁 Quản Lý Dự Án & Hồ Sơ Thiết Kế</h3>
+        <button class="btn-close-modal" onclick="GlobalStore.closeProjectManagerModal()">✕</button>
+      </div>
+      <div class="dialog-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+          <button class="btn-primary-action" onclick="GlobalStore.createNewEmptyProject()">➕ Tạo dự án mới</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-secondary" onclick="GlobalStore.saveCurrentProjectToStorage()">💾 Lưu bản hiện tại</button>
+            <button class="btn-secondary" onclick="GlobalStore.exportProjectJSON()">📥 Xuất tệp JSON</button>
+            <label class="btn-secondary" style="margin:0; display:inline-flex; align-items:center; cursor:pointer;">
+              📤 Nhập tệp JSON
+              <input type="file" accept=".json" style="display:none;" onchange="GlobalStore.importProjectJSON(this.files[0])" />
+            </label>
+          </div>
+        </div>
+
+        <div style="font-weight:700; color:#fff; font-size:12px; margin-top:6px;">
+          Danh sách dự án đã lưu trong máy:
+        </div>
+        <div id="projectManagerList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" onclick="GlobalStore.closeProjectManagerModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CÀI ĐẶT HỆ THỐNG (SETTINGS MODAL) -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) GlobalStore.closeSettingsModal()">
+    <div class="app-dialog-box" style="width: 580px;">
+      <div class="dialog-header">
+        <h3>⚙️ Cài Đặt Hệ Thống & Cấu Hình Render</h3>
+        <button class="btn-close-modal" onclick="GlobalStore.closeSettingsModal()">✕</button>
+      </div>
+      <div class="dialog-body">
+        <div class="cfg-row">
+          <span class="cfg-label">Tăng tốc phần cứng (Hardware Acceleration):</span>
+          <select class="cfg-select" id="settingGpu">
+            <option value="webgl" selected>WebGL 2.0 (Khuyên dùng)</option>
+            <option value="canvas2d">Canvas 2D Tối ưu</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">Độ phân giải xuất mặc định:</span>
+          <select class="cfg-select" id="settingDefaultRes">
+            <option value="720p">720p HD (1200x720)</option>
+            <option value="1080p" selected>1080p Full HD (1920x1080)</option>
+            <option value="4k">4K UHD (3840x2160)</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">Tốc độ khung hình mặc định (FPS):</span>
+          <select class="cfg-select" id="settingDefaultFps">
+            <option value="24">24 FPS (Cinematic)</option>
+            <option value="30" selected>30 FPS (Truyền hình)</option>
+            <option value="60">60 FPS (Mượt mà cao)</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">Tự động lưu dự án (Auto-Save):</span>
+          <select class="cfg-select" id="settingAutosave">
+            <option value="15">Mỗi 15 giây</option>
+            <option value="30" selected>Mỗi 30 giây</option>
+            <option value="0">Tắt tự động lưu</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">Công nghệ đọc giọng thuyết minh:</span>
+          <select class="cfg-select" id="settingVoiceEngine">
+            <option value="speechSynthesis" selected>Web Speech API (Trình duyệt)</option>
+            <option value="neural">Neural Technical TTS (Mô phỏng)</option>
+          </select>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" onclick="GlobalStore.closeSettingsModal()">Hủy</button>
+        <button class="btn-primary-action" onclick="GlobalStore.saveSettings()">Lưu cài đặt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LỊCH SỬ CHỈNH SỬA (HISTORY MODAL) -->
+  <div class="modal-overlay" id="historyModal" onclick="if(event.target===this) GlobalStore.closeHistoryModal()">
+    <div class="app-dialog-box" style="width: 620px;">
+      <div class="dialog-header">
+        <h3>🕒 Lịch Sử Chỉnh Sửa & Điểm Phục Hồi</h3>
+        <button class="btn-close-modal" onclick="GlobalStore.closeHistoryModal()">✕</button>
+      </div>
+      <div class="dialog-body">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; color:var(--text-muted);">Các bản sao lưu tự động & mốc chỉnh sửa trong phiên làm việc:</span>
+          <button class="btn-secondary" onclick="GlobalStore.createManualHistorySnapshot()">📸 Tạo mốc lưu ngay</button>
+        </div>
+        <div id="historySnapshotsList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" onclick="GlobalStore.closeHistoryModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL XEM CHI TIẾT BẢN VẼ (ASSET PREVIEW / LIGHTBOX MODAL) -->
+  <div class="modal-overlay" id="assetPreviewModal" onclick="if(event.target===this) GlobalStore.closeAssetPreviewModal()">
+    <div class="app-dialog-box" style="width: 860px; max-width:95vw;">
+      <div class="dialog-header">
+        <h3 id="assetPreviewTitle">🔍 Chi Tiết Bản Vẽ Kỹ Thuật</h3>
+        <button class="btn-close-modal" onclick="GlobalStore.closeAssetPreviewModal()">✕</button>
+      </div>
+      <div class="dialog-body" style="padding: 14px 20px;">
+        <div style="aspect-ratio: 16/9; background:#000; border-radius:8px; overflow:hidden; border:1px solid var(--border); position:relative;">
+          <canvas id="assetDetailCanvas" width="1200" height="720" style="width:100%; height:100%; display:block;"></canvas>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:10px;">
+          <div>Độ phân giải: <strong style="color:#fff;" id="assetDetailRes">3840x2160</strong> | Dung lượng: <strong style="color:#fff;" id="assetDetailSize">14.2 MB</strong></div>
+          <div>Chuẩn CAD: <strong style="color:var(--accent-green);">Autodesk Civil 3D 100% Geometry</strong></div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" onclick="GlobalStore.closeAssetPreviewModal()">Đóng</button>
+        <button class="btn-primary-action" id="btnAssetSetAsShot" onclick="GlobalStore.assignAssetToActiveShot()">Đặt làm cảnh hiện tại (Bước 3) ➜</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 // ========================================================
 // GIAI ĐOẠN 1: GLOBAL STATE MANAGEMENT (STORE TOÀN CỤC)
@@ -1416,16 +1616,478 @@ const GlobalStore = {
   },
 
   canvasCache: new Map(),
+  historySnapshots: [],
+  activePreviewAssetId: null,
+  autoSaveIntervalId: null,
 
   init() {
-    // BƯỚC 1: Khởi tạo Empty State sạch sẽ, không gán mock data mặc định
+    this.loadSavedSettings();
     this.calculateTotalDuration();
     this.renderAssetTable();
     this.renderWorkspace2UI();
     this.renderMultiTrackTimeline();
     this.populatePropertiesCol();
-    this.setStep(3);
+    this.setStep(1);
     this.initWaveformUI();
+    this.addHistorySnapshot("Khởi tạo ứng dụng");
+  },
+
+  // ========================================================
+  // QUẢN LÝ DỰ ÁN (PROJECT MANAGER & STORAGE)
+  // ========================================================
+  openProjectManagerModal() {
+    const modal = document.getElementById("projectManagerModal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    this.renderProjectManagerList();
+  },
+
+  closeProjectManagerModal() {
+    const modal = document.getElementById("projectManagerModal");
+    if (modal) modal.style.display = "none";
+  },
+
+  getStoredProjects() {
+    try {
+      const raw = localStorage.getItem("ai_video_projects");
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.warn("Lỗi đọc dự án từ localStorage:", e);
+      return [];
+    }
+  },
+
+  setStoredProjects(list) {
+    try {
+      localStorage.setItem("ai_video_projects", JSON.stringify(list));
+    } catch (e) {
+      console.warn("Lỗi lưu dự án vào localStorage:", e);
+    }
+  },
+
+  renderProjectManagerList() {
+    const listEl = document.getElementById("projectManagerList");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    const list = this.getStoredProjects();
+    if (list.length === 0) {
+      listEl.innerHTML = `
+        <div style="padding:24px; text-align:center; color:var(--text-muted); background:#0c1220; border-radius:8px; border:1px dashed var(--border);">
+          <div style="font-size:24px; margin-bottom:6px;">📂</div>
+          <div style="font-weight:600; color:#cbd5e1;">Chưa có dự án nào được lưu trong máy</div>
+          <div style="font-size:11.5px; margin-top:4px;">Bấm "💾 Lưu bản hiện tại" để lưu dự án đang làm việc vào bộ nhớ trình duyệt.</div>
+        </div>
+      `;
+      return;
+    }
+
+    list.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "proj-item-card";
+      card.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="font-weight:700; color:#fff; font-size:13px;">${item.name || "Dự án không tên"}</div>
+          <div style="font-size:11px; color:var(--text-dim);">
+            🕒 Lưu lúc: <span style="color:#94a3b8;">${item.lastSaved || "--"}</span> | 
+            🎞️ <span style="color:#38bdf8;">${item.shotsCount || 0} phân cảnh</span> (${item.duration || 0}s)
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-primary-action" onclick="GlobalStore.loadProjectFromStorage('${item.id}')">📂 Mở</button>
+          <button class="btn-danger-action" onclick="GlobalStore.deleteProjectFromStorage('${item.id}')">🗑️</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  },
+
+  createNewEmptyProject() {
+    if (this.state.shots.length > 0 || this.state.assets.length > 0) {
+      if (!confirm("Tạo dự án mới sẽ làm mới không gian làm việc hiện tại. Bạn đã lưu dự án chưa?")) {
+        return;
+      }
+    }
+    this.state.project = {
+      name: "Dự án mới " + new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+      status: "Đang xử lý",
+      lastSaved: new Date()
+    };
+    this.state.shots = [];
+    this.state.assets = [];
+    this.state.selectedShotIndex = null;
+    this.state.currentScene = null;
+    this.state.timelineItems = [];
+    this.state.subtitleData = [];
+    this.state.script = { fullText: "", scenes: [] };
+    this.canvasCache.clear();
+
+    const headerTitle = document.getElementById("headerProjectName");
+    if (headerTitle) headerTitle.textContent = "Dự án: " + this.state.project.name;
+
+    this.calculateTotalDuration();
+    this.renderAssetTable();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    this.closeProjectManagerModal();
+    this.setStep(1);
+    this.addHistorySnapshot("Tạo dự án mới rỗng");
+    this.triggerAutoSave();
+  },
+
+  saveCurrentProjectToStorage() {
+    const list = this.getStoredProjects();
+    const projId = "proj_" + Date.now();
+    const saveObj = {
+      id: projId,
+      name: this.state.project.name || "Dự án không tên",
+      lastSaved: new Date().toLocaleString("vi-VN"),
+      shotsCount: this.state.shots.length,
+      duration: this.state.playback.totalDuration,
+      data: {
+        project: this.state.project,
+        assets: this.state.assets.map(a => ({
+          id: a.id,
+          type: a.type,
+          typeName: a.typeName,
+          name: a.name,
+          size: a.size,
+          res: a.res,
+          progress: a.progress,
+          drawType: a.drawType,
+          title: a.title
+        })),
+        shots: this.state.shots,
+        script: this.state.script,
+        exportConfig: this.state.exportConfig
+      }
+    };
+
+    list.unshift(saveObj);
+    this.setStoredProjects(list);
+    this.renderProjectManagerList();
+    this.addHistorySnapshot("Đã lưu dự án vào bộ nhớ trình duyệt");
+    alert(`💾 Đã lưu thành công dự án "${saveObj.name}" vào máy!`);
+  },
+
+  loadProjectFromStorage(projId) {
+    const list = this.getStoredProjects();
+    const found = list.find(p => p.id === projId);
+    if (!found || !found.data) {
+      alert("Không tìm thấy dữ liệu dự án.");
+      return;
+    }
+
+    const d = found.data;
+    this.state.project = d.project || { name: found.name, status: "Đang xử lý", lastSaved: new Date() };
+    this.state.assets = d.assets || [];
+    this.state.shots = d.shots || [];
+    this.state.script = d.script || { fullText: "", scenes: [] };
+    this.state.exportConfig = d.exportConfig || this.state.exportConfig;
+    this.canvasCache.clear();
+
+    if (this.state.shots.length > 0) {
+      this.state.selectedShotIndex = 0;
+      this.state.currentScene = this.state.shots[0];
+      this.state.timelineItems = this.state.shots;
+      this.state.subtitleData = this.state.shots.map(x => x.title);
+    } else {
+      this.state.selectedShotIndex = null;
+      this.state.currentScene = null;
+      this.state.timelineItems = [];
+      this.state.subtitleData = [];
+    }
+
+    const headerTitle = document.getElementById("headerProjectName");
+    if (headerTitle) headerTitle.textContent = "Dự án: " + this.state.project.name;
+
+    this.calculateTotalDuration();
+    if (!this.state.script.fullText && this.state.shots.length > 0) {
+      this.buildFullScriptFromShots();
+    }
+    this.renderAssetTable();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    if (this.state.shots.length > 0) {
+      this.drawEditorFrame(0);
+      this.setStep(3);
+    } else {
+      this.setStep(1);
+    }
+
+    this.closeProjectManagerModal();
+    this.addHistorySnapshot(`Mở dự án: ${found.name}`);
+    this.triggerAutoSave();
+  },
+
+  deleteProjectFromStorage(projId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn dự án này khỏi bộ nhớ máy?")) return;
+    let list = this.getStoredProjects();
+    list = list.filter(p => p.id !== projId);
+    this.setStoredProjects(list);
+    this.renderProjectManagerList();
+  },
+
+  exportProjectJSON() {
+    const exportData = {
+      version: "1.0.0",
+      exportDate: new Date().toISOString(),
+      project: this.state.project,
+      assets: this.state.assets.map(a => ({
+        id: a.id,
+        type: a.type,
+        typeName: a.typeName,
+        name: a.name,
+        size: a.size,
+        res: a.res,
+        progress: a.progress,
+        drawType: a.drawType,
+        title: a.title
+      })),
+      shots: this.state.shots,
+      script: this.state.script,
+      exportConfig: this.state.exportConfig
+    };
+
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeName = (this.state.project.name || "DuAn").replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1EA0-\u1EF9]/g, "_");
+    a.href = url;
+    a.download = `AI-Video_${safeName}_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
+  importProjectJSON(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const d = JSON.parse(e.target.result);
+        if (!d.project && !d.shots) {
+          throw new Error("Tệp JSON không đúng cấu trúc dự án AI-Video.");
+        }
+        this.state.project = d.project || { name: file.name.replace(".json", ""), status: "Đang xử lý", lastSaved: new Date() };
+        this.state.assets = d.assets || [];
+        this.state.shots = d.shots || [];
+        this.state.script = d.script || { fullText: "", scenes: [] };
+        if (d.exportConfig) this.state.exportConfig = d.exportConfig;
+        this.canvasCache.clear();
+
+        if (this.state.shots.length > 0) {
+          this.state.selectedShotIndex = 0;
+          this.state.currentScene = this.state.shots[0];
+          this.state.timelineItems = this.state.shots;
+          this.state.subtitleData = this.state.shots.map(x => x.title);
+        } else {
+          this.state.selectedShotIndex = null;
+          this.state.currentScene = null;
+          this.state.timelineItems = [];
+          this.state.subtitleData = [];
+        }
+
+        const headerTitle = document.getElementById("headerProjectName");
+        if (headerTitle) headerTitle.textContent = "Dự án: " + this.state.project.name;
+
+        this.calculateTotalDuration();
+        if (!this.state.script.fullText && this.state.shots.length > 0) {
+          this.buildFullScriptFromShots();
+        }
+        this.renderAssetTable();
+        this.renderWorkspace2UI();
+        this.renderMultiTrackTimeline();
+        this.populatePropertiesCol();
+
+        if (this.state.shots.length > 0) {
+          this.drawEditorFrame(0);
+          this.setStep(3);
+        } else {
+          this.setStep(1);
+        }
+        this.closeProjectManagerModal();
+        this.addHistorySnapshot(`Nhập tệp JSON: ${file.name}`);
+        alert(`📥 Đã nhập thành công dự án từ "${file.name}"!`);
+      } catch (err) {
+        alert("Lỗi khi đọc tệp JSON: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  },
+
+  // ========================================================
+  // CÀI ĐẶT HỆ THỐNG (SETTINGS)
+  // ========================================================
+  openSettingsModal() {
+    const modal = document.getElementById("settingsModal");
+    if (!modal) return;
+    const settings = this.getSavedSettings();
+    if (document.getElementById("settingGpu")) document.getElementById("settingGpu").value = settings.gpu;
+    if (document.getElementById("settingDefaultRes")) document.getElementById("settingDefaultRes").value = settings.defaultRes;
+    if (document.getElementById("settingDefaultFps")) document.getElementById("settingDefaultFps").value = settings.defaultFps;
+    if (document.getElementById("settingAutosave")) document.getElementById("settingAutosave").value = settings.autosave;
+    if (document.getElementById("settingVoiceEngine")) document.getElementById("settingVoiceEngine").value = settings.voiceEngine;
+    modal.style.display = "flex";
+  },
+
+  closeSettingsModal() {
+    const modal = document.getElementById("settingsModal");
+    if (modal) modal.style.display = "none";
+  },
+
+  getSavedSettings() {
+    try {
+      const raw = localStorage.getItem("ai_video_settings");
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {
+      gpu: "webgl",
+      defaultRes: "1080p",
+      defaultFps: "30",
+      autosave: "30",
+      voiceEngine: "speechSynthesis"
+    };
+  },
+
+  saveSettings() {
+    const settings = {
+      gpu: document.getElementById("settingGpu").value,
+      defaultRes: document.getElementById("settingDefaultRes").value,
+      defaultFps: document.getElementById("settingDefaultFps").value,
+      autosave: document.getElementById("settingAutosave").value,
+      voiceEngine: document.getElementById("settingVoiceEngine").value
+    };
+    try {
+      localStorage.setItem("ai_video_settings", JSON.stringify(settings));
+    } catch(e) {}
+    this.applySettings(settings);
+    this.closeSettingsModal();
+    alert("⚙️ Đã lưu cấu hình cài đặt hệ thống!");
+  },
+
+  loadSavedSettings() {
+    const settings = this.getSavedSettings();
+    this.applySettings(settings);
+  },
+
+  applySettings(settings) {
+    if (settings.defaultRes) {
+      this.state.exportConfig.res = settings.defaultRes;
+      const resSel = document.getElementById("ws4ResSelect");
+      if (resSel) resSel.value = settings.defaultRes;
+    }
+    if (settings.defaultFps) {
+      this.state.exportConfig.fps = settings.defaultFps;
+      const fpsSel = document.getElementById("ws4FpsSelect");
+      if (fpsSel) fpsSel.value = settings.defaultFps;
+    }
+    this.setupAutoSaveTimer(parseInt(settings.autosave) || 30);
+  },
+
+  setupAutoSaveTimer(intervalSec = 30) {
+    if (this.autoSaveIntervalId) {
+      clearInterval(this.autoSaveIntervalId);
+      this.autoSaveIntervalId = null;
+    }
+    if (intervalSec <= 0) return;
+    this.autoSaveIntervalId = setInterval(() => {
+      this.triggerAutoSave();
+    }, intervalSec * 1000);
+  },
+
+  // ========================================================
+  // LỊCH SỬ CHỈNH SỬA & PHỤC HỒI (HISTORY)
+  // ========================================================
+  addHistorySnapshot(desc) {
+    const snap = {
+      id: Date.now(),
+      time: new Date().toLocaleTimeString("vi-VN"),
+      desc: desc || "Thay đổi trạng thái",
+      shotsCount: this.state.shots.length,
+      duration: this.state.playback.totalDuration,
+      data: JSON.parse(JSON.stringify(this.state))
+    };
+    this.historySnapshots.unshift(snap);
+    if (this.historySnapshots.length > 25) this.historySnapshots.pop();
+  },
+
+  openHistoryModal() {
+    const modal = document.getElementById("historyModal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    this.renderHistoryList();
+  },
+
+  closeHistoryModal() {
+    const modal = document.getElementById("historyModal");
+    if (modal) modal.style.display = "none";
+  },
+
+  renderHistoryList() {
+    const listEl = document.getElementById("historySnapshotsList");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    if (this.historySnapshots.length === 0) {
+      listEl.innerHTML = `
+        <div style="padding:20px; text-align:center; color:var(--text-muted); background:#0c1220; border-radius:6px;">
+          Chưa có mốc lịch sử nào trong phiên này.
+        </div>
+      `;
+      return;
+    }
+    this.historySnapshots.forEach((snap, idx) => {
+      const row = document.createElement("div");
+      row.className = "history-item-row";
+      row.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <div style="font-weight:700; color:#fff;">${snap.desc}</div>
+          <div style="font-size:11px; color:var(--text-dim);">
+            🕒 ${snap.time} | 🎞️ ${snap.shotsCount} cảnh (${snap.duration}s)
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="GlobalStore.restoreHistorySnapshot(${idx})">
+          ↺ Phục hồi
+        </button>
+      `;
+      listEl.appendChild(row);
+    });
+  },
+
+  createManualHistorySnapshot() {
+    const note = prompt("Nhập tên mô tả cho mốc lưu lịch sử này:", `Mốc lưu thủ công lúc ${new Date().toLocaleTimeString("vi-VN")}`);
+    if (note === null) return;
+    this.addHistorySnapshot(note || "Mốc lưu thủ công");
+    this.renderHistoryList();
+    this.triggerAutoSave();
+  },
+
+  restoreHistorySnapshot(idx) {
+    const snap = this.historySnapshots[idx];
+    if (!snap || !snap.data) return;
+    if (!confirm(`Phục hồi lại trạng thái "${snap.desc}" lúc ${snap.time}?`)) return;
+
+    this.state = JSON.parse(JSON.stringify(snap.data));
+    this.canvasCache.clear();
+    const headerTitle = document.getElementById("headerProjectName");
+    if (headerTitle) headerTitle.textContent = "Dự án: " + this.state.project.name;
+
+    this.calculateTotalDuration();
+    this.renderAssetTable();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    if (this.state.shots.length > 0) {
+      this.drawEditorFrame(0);
+      this.setStep(3);
+    } else {
+      this.setStep(1);
+    }
+    this.closeHistoryModal();
+    alert(`↺ Đã phục hồi về mốc: ${snap.desc}`);
   },
 
   // 1.1 Khởi tạo dữ liệu mẫu chuẩn Civil 3D & InfraWorks
@@ -1555,8 +2217,35 @@ const GlobalStore = {
   // ========================================================
   renderAssetTable(filter = "all") {
     const tbody = document.getElementById("assetTableBody");
+    if (!tbody) return;
     tbody.innerHTML = "";
+
+    // Cập nhật số đếm dynamic cho thanh bộ lọc
+    const allCount = this.state.assets.length;
+    const bdCount = this.state.assets.filter(a => a.type === "binh_do").length;
+    const tdCount = this.state.assets.filter(a => a.type === "trac_doc").length;
+    const mcCount = this.state.assets.filter(a => a.type === "mat_cat").length;
+    const pcCount = this.state.assets.filter(a => a.type === "phoi_canh").length;
+
+    if (document.getElementById("count-all")) document.getElementById("count-all").textContent = allCount;
+    if (document.getElementById("count-bd")) document.getElementById("count-bd").textContent = bdCount;
+    if (document.getElementById("count-td")) document.getElementById("count-td").textContent = tdCount;
+    if (document.getElementById("count-mc")) document.getElementById("count-mc").textContent = mcCount;
+    if (document.getElementById("count-pc")) document.getElementById("count-pc").textContent = pcCount;
+
     const filtered = filter === "all" ? this.state.assets : this.state.assets.filter(a => a.type === filter);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:32px 16px; color:var(--text-muted); font-size:12px;">
+            <div style="font-size:20px; margin-bottom:6px;">📭</div>
+            Chưa có bản vẽ nào trong mục này. Vui lòng kéo thả hoặc chọn tệp từ máy tính để bắt đầu.
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
     filtered.forEach(asset => {
       const tr = document.createElement("tr");
@@ -1568,7 +2257,7 @@ const GlobalStore = {
       else if (asset.type === "phoi_canh") badgeClass = "badge-pc";
 
       tr.innerHTML = `
-        <td><input type="checkbox" checked /></td>
+        <td><input type="checkbox" class="asset-row-cb" data-id="${asset.id}" checked /></td>
         <td>
           <img class="table-thumb" src="${c.toDataURL()}" />
           <strong>${asset.name}</strong>
@@ -1581,24 +2270,110 @@ const GlobalStore = {
           <span style="font-size:11px; color:var(--accent-green); font-weight:700;">${asset.progress}% Đã duyệt</span>
         </td>
         <td style="text-align:right;">
-          <button style="background:none; border:none; color:#38bdf8; cursor:pointer; font-weight:600;" onclick="GlobalStore.previewAsset('${asset.id}')">Xem ↗</button>
+          <div style="display:inline-flex; gap:6px;">
+            <button style="background:#1e293b; border:1px solid var(--border); color:#38bdf8; border-radius:4px; padding:4px 8px; cursor:pointer; font-weight:600; font-size:11px;" onclick="GlobalStore.openAssetDetailModal('${asset.id}')">🔍 Xem</button>
+            <button style="background:#3b1111; border:1px solid #7f1d1d; color:#f87171; border-radius:4px; padding:4px 8px; cursor:pointer; font-weight:600; font-size:11px;" onclick="GlobalStore.deleteAsset('${asset.id}')">🗑️ Xóa</button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
     });
   },
 
+  deleteAsset(assetId) {
+    const found = this.state.assets.find(a => a.id === assetId);
+    if (!found) return;
+    if (!confirm(`Xác nhận xóa bản vẽ "${found.name}" khỏi dự án?`)) return;
+
+    this.state.assets = this.state.assets.filter(a => a.id !== assetId);
+    this.canvasCache.delete(assetId);
+    this.renderAssetTable();
+    this.addHistorySnapshot(`Xóa bản vẽ: ${found.name}`);
+    this.triggerAutoSave();
+  },
+
+  toggleSelectAllAssets(checked) {
+    const cbs = document.querySelectorAll(".asset-row-cb");
+    cbs.forEach(cb => cb.checked = checked);
+  },
+
+  openAssetDetailModal(assetId) {
+    const asset = this.state.assets.find(a => a.id === assetId);
+    if (!asset) return;
+    this.activePreviewAssetId = assetId;
+
+    const modal = document.getElementById("assetPreviewModal");
+    if (!modal) return;
+
+    const titleEl = document.getElementById("assetPreviewTitle");
+    const resEl = document.getElementById("assetDetailRes");
+    const sizeEl = document.getElementById("assetDetailSize");
+    const canvas = document.getElementById("assetDetailCanvas");
+
+    if (titleEl) titleEl.textContent = `🔍 ${asset.typeName}: ${asset.name}`;
+    if (resEl) resEl.textContent = asset.res || "3840x2160";
+    if (sizeEl) sizeEl.textContent = asset.size || "15 MB";
+
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      const srcCanvas = this.getAssetCanvas(asset);
+      ctx.drawImage(srcCanvas, 0, 0, canvas.width, canvas.height);
+    }
+
+    modal.style.display = "flex";
+  },
+
+  closeAssetPreviewModal() {
+    const modal = document.getElementById("assetPreviewModal");
+    if (modal) modal.style.display = "none";
+  },
+
+  assignAssetToActiveShot() {
+    if (!this.activePreviewAssetId) return;
+    const asset = this.state.assets.find(a => a.id === this.activePreviewAssetId);
+    if (!asset) return;
+
+    if (this.state.shots && this.state.shots.length > 0 && this.state.selectedShotIndex !== null) {
+      this.state.shots[this.state.selectedShotIndex].assetId = asset.id;
+      this.state.shots[this.state.selectedShotIndex].name = asset.typeName;
+      this.state.shots[this.state.selectedShotIndex].title = asset.title || asset.name.toUpperCase();
+    } else {
+      const newShot = {
+        id: "s_" + Date.now(),
+        num: "01",
+        name: asset.typeName,
+        duration: 6,
+        assetId: asset.id,
+        motion: "zoom_in",
+        transition: "crossfade",
+        title: asset.title || asset.name.toUpperCase(),
+        subtitle: "Hồ sơ thiết kế kỹ thuật",
+        script: `Mô tả phân cảnh kỹ thuật cho bản vẽ ${asset.name}.`
+      };
+      this.state.shots = [newShot];
+      this.state.selectedShotIndex = 0;
+    }
+
+    this.calculateTotalDuration();
+    this.buildFullScriptFromShots();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    this.drawEditorFrame(0);
+    this.closeAssetPreviewModal();
+    this.setStep(3);
+    this.addHistorySnapshot(`Gán bản vẽ "${asset.name}" cho phân cảnh`);
+    this.triggerAutoSave();
+  },
+
+  previewAsset(id) {
+    this.openAssetDetailModal(id);
+  },
+
   filterAssetTable(type, tabEl) {
     document.querySelectorAll(".ws1-filter-bar .filter-tab").forEach(t => t.classList.remove("active"));
     tabEl.classList.add("active");
     this.renderAssetTable(type);
-  },
-
-  previewAsset(id) {
-    const a = this.state.assets.find(x => x.id === id);
-    if (!a) return;
-    this.state.shots[this.state.selectedShotIndex].assetId = a.id;
-    this.setStep(3);
   },
 
   handleUserUpload(files) {
@@ -1608,10 +2383,24 @@ const GlobalStore = {
       reader.onload = e => {
         const img = new Image();
         img.onload = () => {
+          let detectedType = "binh_do";
+          let detectedTypeName = "Bình đồ tuyến";
+          const fn = file.name.toLowerCase();
+          if (fn.includes("trac_doc") || fn.includes("doc") || fn.includes("profile")) {
+            detectedType = "trac_doc";
+            detectedTypeName = "Trắc dọc";
+          } else if (fn.includes("mat_cat") || fn.includes("mcn") || fn.includes("cross")) {
+            detectedType = "mat_cat";
+            detectedTypeName = "Mặt cắt ngang";
+          } else if (fn.includes("3d") || fn.includes("phoi_canh") || fn.includes("infra")) {
+            detectedType = "phoi_canh";
+            detectedTypeName = "Phối cảnh 3D";
+          }
+
           const newAsset = {
             id: "user_" + Date.now() + "_" + idx,
-            type: "binh_do",
-            typeName: "Bản vẽ người dùng",
+            type: detectedType,
+            typeName: detectedTypeName,
             name: file.name,
             size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
             res: `${img.width}x${img.height}`,
@@ -1627,6 +2416,7 @@ const GlobalStore = {
           GlobalStore.canvasCache.set(newAsset.id, c);
           GlobalStore.state.assets.unshift(newAsset);
           GlobalStore.renderAssetTable();
+          GlobalStore.addHistorySnapshot(`Tải lên bản vẽ: ${file.name}`);
           GlobalStore.triggerAutoSave();
         };
         img.src = e.target.result;
@@ -1680,15 +2470,72 @@ const GlobalStore = {
   },
 
   aiGenerateScript() {
-    alert("✨ AI đã phân tích hồ sơ trắc địa Civil 3D và viết lại kịch bản thuyết minh tối ưu!");
+    if (!this.state.assets || this.state.assets.length === 0) {
+      alert("⚠️ Dự án chưa có dữ liệu bản vẽ nào! Hãy thêm bản vẽ trước khi AI phân tích tạo kịch bản.");
+      return;
+    }
+
+    if (!this.state.shots || this.state.shots.length === 0) {
+      this.state.shots = this.state.assets.map((a, idx) => {
+        const numStr = (idx + 1) < 10 ? `0${idx + 1}` : `${idx + 1}`;
+        let motion = "zoom_in";
+        if (a.type === "binh_do") motion = "pan_left_right";
+        else if (a.type === "trac_doc") motion = "pan_left_right";
+        else if (a.type === "mat_cat") motion = "static";
+        else if (a.type === "phoi_canh") motion = "zoom_in";
+
+        let script = "";
+        if (a.type === "binh_do") {
+          script = `Bình đồ tim tuyến thiết kế hình học tối ưu bằng Autodesk Civil 3D, bán kính đường cong R lớn đảm bảo tầm nhìn vượt xe và vận tốc thiết kế.`;
+        } else if (a.type === "trac_doc") {
+          script = `Trắc dọc tuyến kiểm soát cao độ đường đỏ êm thuận, độ dốc dọc i phù hợp địa hình tự nhiên và cân đối tối đa khối lượng đào đắp nền đường.`;
+        } else if (a.type === "mat_cat") {
+          script = `Mặt cắt ngang điển hình thể hiện đầy đủ các làn xe cơ giới, dải an toàn, rãnh biên thoát nước và kết cấu áo đường kiên cố theo tiêu chuẩn.`;
+        } else {
+          script = `Mô phỏng 3D Autodesk InfraWorks mang lại góc nhìn không gian trực quan, làm nổi bật điểm nhấn công trình hạ tầng kỹ thuật hiện đại.`;
+        }
+
+        return {
+          id: "s_ai_" + Date.now() + "_" + idx,
+          num: numStr,
+          name: a.typeName,
+          duration: 6,
+          assetId: a.id,
+          motion: motion,
+          transition: "crossfade",
+          title: a.title || a.name.toUpperCase().replace(/\.[^/.]+$/, ""),
+          subtitle: `Tiêu chuẩn thiết kế kỹ thuật - Lý trình Km${idx * 5}+000`,
+          script: script
+        };
+      });
+      this.state.selectedShotIndex = 0;
+    } else {
+      this.state.shots.forEach((s, idx) => {
+        s.subtitle = `Hồ sơ Civil 3D - Lý trình Km${idx * 4}+500 (Kiểm tra hình học 100%)`;
+        s.script = `Phân cảnh ${s.num}: Phân tích kỹ thuật chi tiết đối với hạng mục ${s.name}, đảm bảo tuân thủ nghiêm ngặt quy trình quy phạm kỹ thuật hiện hành.`;
+      });
+    }
+
+    this.calculateTotalDuration();
     this.buildFullScriptFromShots();
     this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    this.addHistorySnapshot("AI tự động sinh kịch bản kỹ thuật");
+    this.triggerAutoSave();
+    alert("✨ AI đã phân tích hồ sơ trắc địa Civil 3D và viết lại kịch bản thuyết minh kỹ thuật hoàn chỉnh!");
   },
 
   insertStationingPrompt() {
     const txt = document.getElementById("fullScriptTextarea");
-    txt.value += "\n[Lý trình Km15+500 - Điểm kết nối nút giao lập thể]";
+    if (!txt) return;
+    const start = txt.selectionStart || txt.value.length;
+    const end = txt.selectionEnd || txt.value.length;
+    const insertText = `\n[Lý trình Km15+500 - Nút giao liên thông & Kết cấu mặt cắt B=24.5m]\n`;
+    txt.value = txt.value.substring(0, start) + insertText + txt.value.substring(end);
     this.updateFullScript(txt.value);
+    txt.focus();
+    txt.setSelectionRange(start + insertText.length, start + insertText.length);
   },
 
   setVoice(v) {
@@ -1697,17 +2544,57 @@ const GlobalStore = {
   },
 
   testCurrentVoice() {
-    const activeShot = this.state.shots[this.state.selectedShotIndex];
-    const text = activeShot ? activeShot.script : "Chào mừng đến với dự án đường cao tốc.";
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'vi-VN';
-      u.rate = parseFloat(document.getElementById("ws2RateSelect") ? document.getElementById("ws2RateSelect").value : 1.0);
-      window.speechSynthesis.speak(u);
-    } else {
+    const activeShot = (this.state.shots && this.state.selectedShotIndex !== null) 
+      ? this.state.shots[this.state.selectedShotIndex] 
+      : null;
+    const text = activeShot ? activeShot.script : (this.state.script.fullText || "Dự án kỹ thuật hạ tầng giao thông và công trình xây dựng.");
+
+    if (!('speechSynthesis' in window)) {
       alert("Trình duyệt không hỗ trợ Web Speech API.");
+      return;
     }
+
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'vi-VN';
+    const rateEl = document.getElementById("ws2RateSelect");
+    u.rate = rateEl ? parseFloat(rateEl.value) : 1.0;
+
+    let animTimer = null;
+    const bars = document.querySelectorAll(".wave-bar");
+
+    const startWaveAnim = () => {
+      animTimer = setInterval(() => {
+        bars.forEach((b, i) => {
+          const h = 4 + Math.round(Math.random() * 22);
+          b.style.height = `${h}px`;
+          b.style.background = "#10b981";
+        });
+      }, 100);
+    };
+
+    const stopWaveAnim = () => {
+      if (animTimer) clearInterval(animTimer);
+      bars.forEach((b, i) => {
+        const h = 6 + Math.round(Math.sin(i * 0.4) * 10);
+        b.style.height = `${h}px`;
+        b.style.background = "";
+      });
+    };
+
+    u.onstart = () => {
+      startWaveAnim();
+    };
+
+    u.onend = () => {
+      stopWaveAnim();
+    };
+
+    u.onerror = () => {
+      stopWaveAnim();
+    };
+
+    window.speechSynthesis.speak(u);
   },
 
   initWaveformUI() {
@@ -1735,7 +2622,6 @@ const GlobalStore = {
     this.state.timelineItems = hasShots ? this.state.shots : [];
     this.state.subtitleData = hasShots ? this.state.shots.map(x => x.title) : [];
 
-    // Component xem trước video (Khu vực trung tâm - Bước 2)
     const emptyPlaceholder = document.getElementById("playerEmptyPlaceholder");
     const overlayTop = document.getElementById("ws3OverlayTop");
     const canvas = document.getElementById("editorCanvas");
@@ -1745,7 +2631,6 @@ const GlobalStore = {
     const btnPlayAll = document.getElementById("btnPlayAll");
     const btnNextStep3 = document.getElementById("btnNextStep3");
 
-    // Các ô form nhập liệu trong bảng thuộc tính (Cột bên phải - Bước 3)
     const shotBadge = document.getElementById("ws3ShotBadge");
     const propNum = document.getElementById("propShotNumTag");
     const propName = document.getElementById("propShotName");
@@ -1759,8 +2644,10 @@ const GlobalStore = {
     const mini2 = document.getElementById("propMini2");
     const mini3 = document.getElementById("propMini3");
 
+    const btnDup = document.getElementById("btnDuplicateShot");
+    const btnDel = document.getElementById("btnDeleteShot");
+
     if (!s) {
-      // BƯỚC 2: Ẩn trình phát video, thay bằng khung xám tối & icon thư mục gạch chéo
       if (emptyPlaceholder) emptyPlaceholder.style.display = "flex";
       if (overlayTop) overlayTop.style.display = "none";
       if (canvas) {
@@ -1776,7 +2663,6 @@ const GlobalStore = {
         playBtn.style.cursor = "not-allowed";
       }
 
-      // BƯỚC 3: Dọn sạch & vô hiệu hóa Bảng thuộc tính phân cảnh
       if (shotBadge) shotBadge.textContent = "Chưa có phân cảnh";
       if (propNum) propNum.textContent = "";
       if (propName) {
@@ -1811,7 +2697,17 @@ const GlobalStore = {
       if (mini2) mini2.textContent = "--";
       if (mini3) mini3.textContent = "--";
 
-      // BƯỚC 5: Vô hiệu hóa các nút hành động
+      if (btnDup) {
+        btnDup.disabled = true;
+        btnDup.style.opacity = "0.4";
+        btnDup.style.cursor = "not-allowed";
+      }
+      if (btnDel) {
+        btnDel.disabled = true;
+        btnDel.style.opacity = "0.4";
+        btnDel.style.cursor = "not-allowed";
+      }
+
       if (btnPlayAll) {
         btnPlayAll.disabled = true;
         btnPlayAll.style.opacity = "0.4";
@@ -1825,7 +2721,6 @@ const GlobalStore = {
       return;
     }
 
-    // Khi CÓ phân cảnh được chọn: Kích hoạt đầy đủ
     if (emptyPlaceholder) emptyPlaceholder.style.display = "none";
     if (overlayTop) overlayTop.style.display = "flex";
     if (shotBadge) shotBadge.textContent = `Cảnh ${s.num} - ${s.name}`;
@@ -1875,6 +2770,17 @@ const GlobalStore = {
     if (mini2) mini2.textContent = s.subtitle ? s.subtitle.slice(0, 10) : "--";
     if (mini3) mini3.textContent = s.motion ? s.motion.toUpperCase() : "--";
 
+    if (btnDup) {
+      btnDup.disabled = false;
+      btnDup.style.opacity = "1";
+      btnDup.style.cursor = "pointer";
+    }
+    if (btnDel) {
+      btnDel.disabled = false;
+      btnDel.style.opacity = "1";
+      btnDel.style.cursor = "pointer";
+    }
+
     if (playBtn) {
       playBtn.disabled = false;
       playBtn.style.opacity = "1";
@@ -1892,12 +2798,80 @@ const GlobalStore = {
     }
   },
 
+  openAssetPickerForCurrentShot() {
+    if (!this.state.shots || this.state.selectedShotIndex === null) return;
+    const activeShot = this.state.shots[this.state.selectedShotIndex];
+    if (activeShot && activeShot.assetId) {
+      this.openAssetDetailModal(activeShot.assetId);
+    } else if (this.state.assets.length > 0) {
+      this.openAssetDetailModal(this.state.assets[0].id);
+    } else {
+      document.getElementById('fileUploadInput').click();
+    }
+  },
+
   updateActiveShotProp(field, val) {
     if (!this.state.shots || this.state.selectedShotIndex === null) return;
     this.state.shots[this.state.selectedShotIndex][field] = val;
     this.calculateTotalDuration();
     this.renderMultiTrackTimeline();
     this.drawEditorFrame(this.state.playback.currentTime);
+    this.triggerAutoSave();
+  },
+
+  duplicateCurrentShot() {
+    if (!this.state.shots || this.state.selectedShotIndex === null) return;
+    const curIdx = this.state.selectedShotIndex;
+    const cur = this.state.shots[curIdx];
+    const clone = JSON.parse(JSON.stringify(cur));
+    clone.id = "s_copy_" + Date.now();
+    clone.name = cur.name + " (Bản sao)";
+
+    this.state.shots.splice(curIdx + 1, 0, clone);
+
+    this.state.shots.forEach((s, i) => {
+      s.num = (i + 1) < 10 ? `0${i + 1}` : `${i + 1}`;
+    });
+
+    this.calculateTotalDuration();
+    this.buildFullScriptFromShots();
+    this.renderWorkspace2UI();
+    this.selectShot(curIdx + 1);
+    this.addHistorySnapshot(`Nhân bản phân cảnh #${cur.num}`);
+    this.triggerAutoSave();
+  },
+
+  deleteCurrentShot() {
+    if (!this.state.shots || this.state.selectedShotIndex === null) return;
+    const curIdx = this.state.selectedShotIndex;
+    const cur = this.state.shots[curIdx];
+    if (!confirm(`Xác nhận xóa phân cảnh #${cur.num} "${cur.name}" khỏi Timeline?`)) return;
+
+    this.state.shots.splice(curIdx, 1);
+
+    if (this.state.shots.length === 0) {
+      this.state.selectedShotIndex = null;
+      this.state.currentScene = null;
+      this.state.timelineItems = [];
+      this.state.subtitleData = [];
+    } else {
+      this.state.shots.forEach((s, i) => {
+        s.num = (i + 1) < 10 ? `0${i + 1}` : `${i + 1}`;
+      });
+      const newIdx = Math.min(curIdx, this.state.shots.length - 1);
+      this.state.selectedShotIndex = newIdx;
+      this.state.currentScene = this.state.shots[newIdx];
+    }
+
+    this.calculateTotalDuration();
+    this.buildFullScriptFromShots();
+    this.renderWorkspace2UI();
+    this.renderMultiTrackTimeline();
+    this.populatePropertiesCol();
+    if (this.state.shots.length > 0) {
+      this.drawEditorFrame(this.state.playback.currentTime);
+    }
+    this.addHistorySnapshot(`Xóa phân cảnh: ${cur.name}`);
     this.triggerAutoSave();
   },
 
@@ -2145,12 +3119,30 @@ const GlobalStore = {
     const c = document.getElementById("exportPreviewCanvas");
     if (!c) return;
     const ctx = c.getContext("2d");
+    if (!this.state.shots || this.state.shots.length === 0) {
+      ctx.fillStyle = "#0f1420";
+      ctx.fillRect(0, 0, 1200, 720);
+      ctx.fillStyle = "#475569";
+      ctx.font = "bold 20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Chưa có phân cảnh nào trong dự án", 600, 360);
+      ctx.textAlign = "start";
+      const totDurEl = document.getElementById("ws4TotalDuration");
+      if (totDurEl) totDurEl.textContent = "00:00 (0 phân cảnh)";
+      return;
+    }
+
     const activeShot = this.state.shots[0];
     const asset = this.state.assets.find(a => a.id === activeShot.assetId) || this.state.assets[0];
-    const srcCanvas = this.getAssetCanvas(asset);
-    ctx.drawImage(srcCanvas, 0, 0, 1200, 720);
+    if (asset) {
+      const srcCanvas = this.getAssetCanvas(asset);
+      ctx.drawImage(srcCanvas, 0, 0, 1200, 720);
+    }
 
-    document.getElementById("ws4TotalDuration").textContent = `00:${this.state.playback.totalDuration} (${this.state.shots.length} phân cảnh)`;
+    const totDurEl = document.getElementById("ws4TotalDuration");
+    if (totDurEl) {
+      totDurEl.textContent = `00:${this.state.playback.totalDuration} (${this.state.shots.length} phân cảnh)`;
+    }
   },
 
   updateExportConfig(key, val) {
@@ -2162,6 +3154,11 @@ const GlobalStore = {
   },
 
   startVideoExport() {
+    if (!this.state.shots || this.state.shots.length === 0) {
+      alert("⚠️ Dự án hiện chưa có phân cảnh nào để xuất video! Vui lòng thêm phân cảnh hoặc áp dụng mẫu dự án trước.");
+      return;
+    }
+
     const modal = document.getElementById("renderModal");
     const bar = document.getElementById("renderModalBar");
     const pctText = document.getElementById("renderModalPercent");
@@ -2189,8 +3186,9 @@ const GlobalStore = {
       const blob = new Blob(chunks, { type: mimeType });
       const url = URL.createObjectURL(blob);
       const dlBtn = document.getElementById("modalDownloadBtn");
+      const safeName = (this.state.project.name || "DuAn").replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1EA0-\u1EF9]/g, "_");
       dlBtn.href = url;
-      dlBtn.download = `AI-Video_CaoTocBacNam_Km10-Km35.${ext}`;
+      dlBtn.download = `AI-Video_${safeName}.${ext}`;
       dlArea.style.display = "block";
       pctText.textContent = "100% Hoàn Tất!";
       document.getElementById("renderStageText").textContent = "✓ Đã render xong toàn bộ video kỹ thuật!";
@@ -2250,7 +3248,9 @@ const GlobalStore = {
     const w = 1200, h = 720;
     ctx.fillStyle = "#090e17"; ctx.fillRect(0, 0, w, h);
 
-    if (asset.drawType === "infra_3d" || asset.drawType === "highway_3d") {
+    if (asset.drawType === "custom" && asset.imgObj) {
+      ctx.drawImage(asset.imgObj, 0, 0, w, h);
+    } else if (asset.drawType === "infra_3d" || asset.drawType === "highway_3d") {
       const sky = ctx.createLinearGradient(0, 0, 0, 420);
       sky.addColorStop(0, "#0284c7"); sky.addColorStop(0.5, "#7dd3fc"); sky.addColorStop(1, "#bae6fd");
       ctx.fillStyle = sky; ctx.fillRect(0, 0, w, 420);
