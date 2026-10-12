@@ -44,6 +44,13 @@
   - Thêm các endpoint: `GET /api/v1/shots/{shot_id}/camera-path`, `PUT /api/v1/shots/{shot_id}/camera-path`, `POST /api/v1/shots/{shot_id}/camera-path/validate`.
 - [x] **PR-12: Scene Grouping API**:
   - Thêm endpoint `POST /api/v1/projects/{project_id}/group-scenes` tích hợp `packages/scene_grouping/grouper.py`.
+- [x] **PR-13: Giao diện Đồng bộ Quy trình Chuẩn Mới (UI Synchronization)**:
+  - Đồng bộ `apps/api/app/ui.py` và `apps/web/app/page.tsx` theo đầy đủ 4 bước quy trình chuẩn.
+  - Hiển thị trực quan Capability Matrix (phản ánh trung thực GPU CUDA, CPU Safe Motion fallback, COLMAP, Nerfstudio, FFmpeg/FFprobe).
+  - Tích hợp tính năng gom nhóm Scene hình học tự động (`group-scenes`).
+  - Trình biên tập Camera Path & Keyframes tương tác: hỗ trợ Motion Presets (Push-In, Orbit 360, Pan Ngang, Crane Fly-Through), thêm/xóa keyframe, kiểm tra tính hợp lệ (`validate`) với điểm số và lý do từ chối, và lưu trực tiếp lên server.
+  - Nâng cấp quản lý Job & Deep QC Inspector: hỗ trợ hủy render (`cancel`), hiển thị chi tiết thông số FFprobe (container, codec, resolution, duration, audio stream, pixel format).
+  - Bổ sung unit test `tests/unit/test_ui.py` kiểm thử các endpoint và thành phần UI (146 passed).
 
 ## Blockers & Trạng thái chưa kiểm chứng (Unverified / Blocked)
 
