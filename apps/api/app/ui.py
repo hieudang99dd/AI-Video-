@@ -383,6 +383,19 @@ HTML_CONTENT = """<!DOCTYPE html>
 """
 
 
-def get_ui_html() -> HTMLResponse:
-    return HTMLResponse(content=HTML_CONTENT, status_code=200)
+from pathlib import Path
 
+
+def get_ui_html() -> HTMLResponse:
+    candidates = [
+        Path(__file__).resolve().parents[3] / "index.html",
+        Path(__file__).resolve().parents[3] / "docs" / "index.html",
+        Path("index.html"),
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                return HTMLResponse(content=p.read_text(encoding="utf-8"), status_code=200)
+            except Exception:
+                pass
+    return HTMLResponse(content=HTML_CONTENT, status_code=200)

@@ -7,3 +7,4 @@ echo Da khoi dong ca 2 tien trinh trong cua so rieng!
 echo Mo trinh duyet tai: http://localhost:8000
 timeout /t 3 >nul
 start http://localhost:8000
+
