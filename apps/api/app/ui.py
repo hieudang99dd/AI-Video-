@@ -385,3 +385,4 @@ HTML_CONTENT = """<!DOCTYPE html>
 
 def get_ui_html() -> HTMLResponse:
     return HTMLResponse(content=HTML_CONTENT, status_code=200)
+
