@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable, Sequence
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from app.core.config import settings
 from app.services.capabilities import get_capabilities
@@ -18,6 +18,48 @@ from packages.path_validation import PathValidator
 
 ProgressFn = Callable[[float, str], None]
 CancelFn = Callable[[], bool]
+
+
+class QualityControlError(ValueError):
+    """Raised when an output MP4 fails quality control inspection."""
+
+
+def qc_video_output(video_path: Path, expected_duration: float | None = None) -> dict:
+    """Verify that the generated MP4 file exists, is non-empty, and satisfies basic video QC."""
+    video_path = Path(video_path)
+    if not video_path.exists():
+        raise QualityControlError(f"QC FAILED: Output video file not found at {video_path}")
+    size = video_path.stat().st_size
+    if size < 1024:
+        raise QualityControlError(f"QC FAILED: Output video file size is too small ({size} bytes, expected > 1024)")
+    return {
+        "qc_passed": True,
+        "file_size_bytes": size,
+        "path": str(video_path),
+        "expected_duration_sec": expected_duration,
+    }
+
+
+def _apply_text_overlay(
+    img: Image.Image,
+    title: str | None = None,
+    subtitle: str | None = None,
+) -> Image.Image:
+    """Apply an elegant technical engineering caption banner over the frame."""
+    if not title and not subtitle:
+        return img
+    draw = ImageDraw.Draw(img)
+    w, h = img.size
+    banner_h = max(40, int(h * 0.14))
+    banner_top = h - banner_h
+    # Dark banner background
+    draw.rectangle([(0, banner_top), (w, h)], fill=(11, 14, 18))
+    font = ImageFont.load_default()
+    if title:
+        draw.text((24, banner_top + 10), title.upper(), fill=(245, 247, 250), font=font)
+    if subtitle:
+        draw.text((24, banner_top + 28), subtitle, fill=(160, 175, 190), font=font)
+    return img
 
 
 class GeometryPathRejected(GeometryError):
@@ -113,6 +155,8 @@ def render_safe_motion(
     height: int,
     progress: ProgressFn,
     cancelled: CancelFn,
+    overlay_title: str | None = None,
+    subtitle_text: str | None = None,
 ) -> dict:
     if not image_paths:
         raise ValueError("shot has no images")
@@ -147,6 +191,9 @@ def render_safe_motion(
                     b = _fit_cover(images[idx + 1], width, height, 1.0 + 0.02 * alpha, 0.5, 0.5)
                     a = Image.blend(a, b, alpha=max(0.0, min(1.0, alpha)))
 
+                if overlay_title or subtitle_text:
+                    a = _apply_text_overlay(a, overlay_title, subtitle_text)
+
                 a.save(tmpdir / f"frame_{frame_idx:06d}.jpg", quality=92)
                 if frame_idx % max(1, fps // 2) == 0:
                     progress(0.1 + 0.75 * global_t, f"Rendering frame {frame_idx + 1}/{total_frames}")
@@ -158,6 +205,8 @@ def render_safe_motion(
                 img.close()
         encode = encode_frame_sequence(actual_frames, output, fps, progress, cancelled, start=0.88, end=1.0)
 
+    qc = qc_video_output(output, duration_sec)
+
     return {
         "renderer": "safe_source_motion_v1",
         "frames": total_frames,
@@ -165,7 +214,65 @@ def render_safe_motion(
         "fps": fps,
         "resolution": [width, height],
         "encoding": encode,
+        "qc": qc,
         "notes": "Source-image motion only; no free-view geometry hallucination.",
+    }
+
+
+def concatenate_timeline(
+    shot_video_paths: list[Path],
+    output: Path,
+    progress: ProgressFn,
+    cancelled: CancelFn,
+    bgm_path: Path | None = None,
+) -> dict:
+    """Concatenate multiple rendered shot MP4s into a single seamless project video.
+
+    Optionally mixes background music (BGM) with soft audio ducking.
+    """
+    if not shot_video_paths:
+        raise ValueError("No shot videos to concatenate")
+
+    ffmpeg = _ffmpeg_path()
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(prefix="cinevideo-timeline-") as tmp:
+        listing = Path(tmp) / "timeline.txt"
+        with listing.open("w", encoding="utf-8") as handle:
+            for p in shot_video_paths:
+                handle.write(f"file '{_concat_escape(p.resolve())}'\n")
+
+        if cancelled():
+            raise InterruptedError("cancel requested")
+
+        progress(0.5, f"Assembling timeline from {len(shot_video_paths)} shots")
+
+        cmd = [
+            ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "concat", "-safe", "0", "-i", str(listing),
+        ]
+
+        if bgm_path and bgm_path.exists():
+            cmd.extend([
+                "-i", str(bgm_path.resolve()),
+                "-filter_complex", "[1:a]volume=0.25[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
+                "-map", "0:v", "-map", "[aout]",
+            ])
+        else:
+            cmd.extend(["-c:v", "copy"])
+
+        cmd.extend(["-movflags", "+faststart", str(output)])
+        subprocess.run(cmd, check=True)
+
+    qc = qc_video_output(output)
+    progress(1.0, "Timeline assembled successfully")
+
+    return {
+        "renderer": "timeline_assembly_v1",
+        "shot_count": len(shot_video_paths),
+        "output": str(output),
+        "qc": qc,
+        "bgm_applied": bool(bgm_path and bgm_path.exists()),
     }
 
 

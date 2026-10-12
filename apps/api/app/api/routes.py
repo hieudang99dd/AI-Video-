@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.entities import ImageAsset, Project, RenderJob, Scene, Shot
 from app.schemas.contracts import (
+    ApplyTemplateRequest,
     AssetOut,
     ProjectCreate,
     ProjectOut,
@@ -21,9 +22,17 @@ from app.schemas.contracts import (
     SceneOut,
     ShotCreate,
     ShotOut,
+    TimelineRenderRequest,
 )
+from app.services.ai_adapter import ai_adapter
+from app.services.camera_modes import get_camera_modes_catalog, validate_camera_motion
 from app.services.capabilities import get_capabilities
 from app.services.image_analysis import analyze_image, select_mode
+from app.services.infrastructure_templates import (
+    generate_infrastructure_storyboard,
+    get_infrastructure_templates,
+    get_template_by_id,
+)
 from app.services.queue import enqueue_render
 from app.services.scenes import select_scene_for_shot
 from app.services.storage import storage
@@ -44,6 +53,21 @@ def health():
 @router.get("/capabilities")
 def capabilities():
     return get_capabilities()
+
+
+@router.get("/templates/infrastructure")
+def list_infrastructure_templates():
+    return get_infrastructure_templates()
+
+
+@router.get("/camera-modes")
+def list_camera_modes():
+    return get_camera_modes_catalog()
+
+
+@router.get("/ai-adapter/status")
+def ai_adapter_status():
+    return ai_adapter.is_available()
 
 
 @router.post("/projects", response_model=ProjectOut)
@@ -203,12 +227,110 @@ def create_shot(project_id: str, body: ShotCreate, db: Session = Depends(get_db)
     mode = body.mode
     if mode == "auto":
         mode = select_mode(len(assets), get_capabilities()["geometry"]["available"])
-    shot = Shot(project_id=project_id, name=body.name, asset_ids=body.asset_ids,
-                duration_sec=min(body.duration_sec, settings.render_max_duration_sec),
-                fps=body.fps, mode=mode, easing=body.easing,
-                keyframes=[{"asset_id": aid, "index": i} for i, aid in enumerate(body.asset_ids)])
+    shot = Shot(
+        project_id=project_id,
+        name=body.name,
+        template_id=body.template_id,
+        asset_ids=body.asset_ids,
+        duration_sec=min(body.duration_sec, settings.render_max_duration_sec),
+        fps=body.fps,
+        mode=mode,
+        camera_mode=body.camera_mode,
+        easing=body.easing,
+        overlay_title=body.overlay_title,
+        subtitle_text=body.subtitle_text,
+        narration_text=body.narration_text,
+        audio_uri=body.audio_uri,
+        keyframes=[{"asset_id": aid, "index": i} for i, aid in enumerate(body.asset_ids)],
+    )
     db.add(shot); db.commit(); db.refresh(shot)
     return shot
+
+
+@router.post("/projects/{project_id}/apply-template", response_model=list[ShotOut])
+def apply_infrastructure_template(
+    project_id: str,
+    body: ApplyTemplateRequest,
+    db: Session = Depends(get_db),
+):
+    """Generate an infrastructure storyboard from the project's uploaded assets."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(404, "project not found")
+
+    assets = list(db.scalars(select(ImageAsset).where(ImageAsset.project_id == project_id).order_by(ImageAsset.created_at)))
+    if not assets:
+        raise HTTPException(400, "Vui lòng tải lên ít nhất một ảnh để tạo storyboard")
+
+    asset_ids = [a.id for a in assets]
+    storyboard = generate_infrastructure_storyboard(project.name, asset_ids)
+
+    created_shots: list[Shot] = []
+    for s in storyboard:
+        shot = Shot(
+            project_id=project_id,
+            name=s["name"],
+            template_id=s["template_id"],
+            asset_ids=s["asset_ids"],
+            duration_sec=s["duration_sec"],
+            fps=s["fps"],
+            mode="auto",
+            camera_mode=s["camera_mode"],
+            easing=s["easing"],
+            overlay_title=s["overlay_title"],
+            subtitle_text=s["subtitle_text"],
+            narration_text=s["narration_text"],
+            keyframes=[{"asset_id": aid, "index": i} for i, aid in enumerate(s["asset_ids"])],
+        )
+        db.add(shot)
+        created_shots.append(shot)
+
+    project.template_name = body.template_id or "infrastructure_8_shots"
+    project.status = "storyboard_ready"
+    db.commit()
+    for s in created_shots:
+        db.refresh(s)
+    return created_shots
+
+
+@router.post("/projects/{project_id}/render-timeline", response_model=RenderJobOut)
+def render_project_timeline(
+    project_id: str,
+    body: TimelineRenderRequest,
+    db: Session = Depends(get_db),
+):
+    """Queue a full project timeline assembly job."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(404, "project not found")
+
+    shots = list(db.scalars(select(Shot).where(Shot.project_id == project_id)))
+    if not shots:
+        raise HTTPException(400, "Dự án chưa có shot nào để xuất timeline")
+
+    width = settings.render_final_width if body.resolution == "1080p" else 1280
+    height = settings.render_final_height if body.resolution == "1080p" else 720
+
+    job = RenderJob(
+        project_id=project_id,
+        shot_id=None,
+        type="timeline",
+        status="queued",
+        width=width,
+        height=height,
+        fps=body.fps,
+        mode="timeline_assembly",
+        provenance={
+            "engine_version": "0.1.0",
+            "pipeline_schema_version": 1,
+            "shot_count": len(shots),
+            "include_subtitles": body.include_subtitles,
+            "include_audio": body.include_audio,
+        },
+    )
+    db.add(job); db.commit(); db.refresh(job)
+    enqueue_render(job.id)
+    return job
 
 
 @router.get("/shots/{shot_id}", response_model=ShotOut)

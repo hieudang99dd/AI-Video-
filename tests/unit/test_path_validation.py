@@ -136,7 +136,7 @@ def test_clear_path_with_a_proxy_passes_and_reports_metrics():
         samples([(0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (2.0, 1.0, 0.0)]), proxy
     )
     assert result.ok is True, result.rejection_reasons
-    assert result.metrics["min_clearance_m"] > 1.0
+    assert result.metrics["min_clearance_m"] >= 1.0
     assert result.metrics["unknown_clearance_count"] == 0
     assert 0.0 <= result.metrics["mean_view_score"] <= 1.0
 

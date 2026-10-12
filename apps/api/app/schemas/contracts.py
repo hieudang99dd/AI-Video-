@@ -12,6 +12,8 @@ class ProjectOut(BaseModel):
     id: str
     name: str
     status: str
+    template_name: str | None = None
+    bgm_uri: str | None = None
     created_at: datetime
     model_config = {"from_attributes": True}
 
@@ -34,19 +36,42 @@ class ShotCreate(BaseModel):
     duration_sec: float = Field(default=5.0, gt=0, le=30)
     fps: int = Field(default=30, ge=12, le=60)
     mode: str = "auto"
+    camera_mode: str = "2D_IMAGE_CAMERA"
+    template_id: str | None = None
     easing: str = "cinematic"
+    overlay_title: str | None = None
+    subtitle_text: str | None = None
+    narration_text: str | None = None
+    audio_uri: str | None = None
 
 
 class ShotOut(BaseModel):
     id: str
     project_id: str
     name: str
+    template_id: str | None = None
     asset_ids: list[str]
     duration_sec: float
     fps: int
     mode: str
+    camera_mode: str = "2D_IMAGE_CAMERA"
     easing: str
+    overlay_title: str | None = None
+    subtitle_text: str | None = None
+    narration_text: str | None = None
+    audio_uri: str | None = None
     model_config = {"from_attributes": True}
+
+
+class ApplyTemplateRequest(BaseModel):
+    template_id: str | None = None
+
+
+class TimelineRenderRequest(BaseModel):
+    resolution: str = "1080p"
+    fps: int = 30
+    include_subtitles: bool = True
+    include_audio: bool = True
 
 
 class RenderRequest(BaseModel):

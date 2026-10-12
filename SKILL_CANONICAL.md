@@ -37,6 +37,19 @@ lục/heading để đọc đúng phần liên quan. Nhưng khi thay đổi cros
 như render pipeline, worker protocol, storage, auth, billing hoặc Hybrid GPU,
 phải kiểm tra tất cả section có liên quan trước khi code.
 
+### 0.0. Các tài liệu hướng dẫn triển khai bổ trợ (Implementation Guides)
+
+Các tài liệu bổ trợ hướng dẫn triển khai chi tiết cho domain video hạ tầng kỹ thuật (không thay thế đặc tả chuẩn này):
+
+- [`docs/EXTERNAL_REPO_SOURCE_MAP.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/EXTERNAL_REPO_SOURCE_MAP.md): Bản đồ nguồn tham khảo và quyết định tích hợp mã nguồn.
+- [`docs/skills/OPEN_SOURCE_LICENSE_AUDIT.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/OPEN_SOURCE_LICENSE_AUDIT.md): Bảng rà soát giấy phép mã nguồn mở và model weights.
+- [`docs/skills/INFRASTRUCTURE_VIDEO_WORKFLOW.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/INFRASTRUCTURE_VIDEO_WORKFLOW.md): Quy trình sản xuất video từ ảnh xuất Civil 3D / InfraWorks.
+- [`docs/skills/SCENE_PLANNING_AND_STORYBOARD.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/SCENE_PLANNING_AND_STORYBOARD.md): 8 Template phân cảnh chuẩn và cấu trúc Storyboard.
+- [`docs/skills/CAMERA_PATH_AND_GEOMETRY_FIDELITY.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/CAMERA_PATH_AND_GEOMETRY_FIDELITY.md): 3 Chế độ Camera và thuật toán bảo toàn hình học kỹ thuật.
+- [`docs/skills/RENDER_AND_EXPORT.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/RENDER_AND_EXPORT.md): Pipeline Render, lồng tiếng, phụ đề, nhạc nền và Quality Control.
+- [`docs/skills/AI_PROVIDER_ADAPTER.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/AI_PROVIDER_ADAPTER.md): Bộ điều hợp AI Video tùy chọn (ComfyUI / Wan2.2).
+- [`docs/skills/HARDWARE_AND_BENCHMARKS.md`](file:///c:/Users/hieu.dv/Downloads/image-to-cinematic-video-phase1/image-to-cinematic-video/docs/skills/HARDWARE_AND_BENCHMARKS.md): Ma trận Fallback phần cứng CPU/GPU và chỉ số hiệu năng.
+
 ### Quy ước về ngưỡng số liệu
 
 Mọi threshold trong file này như:

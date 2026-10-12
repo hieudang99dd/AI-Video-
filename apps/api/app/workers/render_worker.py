@@ -17,6 +17,7 @@ from app.services.geometry_backend import (
 from app.services.queue import pop_render
 from app.services.renderer import (
     GeometryPathRejected,
+    concatenate_timeline,
     geometry_capability_reason,
     render_geometry_motion,
     render_safe_motion,
@@ -59,6 +60,8 @@ def process(job_id: str) -> None:
         try:
             if job.type == "reconstruction":
                 _process_reconstruction(db, job, progress)
+            elif job.type == "timeline":
+                _process_timeline_render(db, job, progress, cancelled)
             else:
                 _process_render(db, job, progress, cancelled)
         except InterruptedError as e:
@@ -174,6 +177,8 @@ def _process_render(db, job: RenderJob, progress, cancelled) -> None:
             height=job.height,
             progress=progress,
             cancelled=cancelled,
+            overlay_title=shot.overlay_title,
+            subtitle_text=shot.subtitle_text,
         )
 
     if cancelled():
@@ -232,6 +237,86 @@ def _try_geometry_render(db, job: RenderJob, shot: Shot, out_path: Path, progres
     meta["scene_id"] = scene.id
     meta["effective_mode"] = "geometry"
     return meta, None
+
+
+def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
+    """Render and concatenate all shots in the project into a continuous master MP4."""
+    from app.models.entities import Project
+
+    project = db.get(Project, job.project_id)
+    if not project:
+        job.status = "failed"; job.error = "Project not found"; db.commit(); return
+
+    shots = list(db.scalars(select(Shot).where(Shot.project_id == job.project_id).order_by(Shot.created_at)))
+    if not shots:
+        job.status = "failed"; job.error = "No shots in project to assemble timeline"; db.commit(); return
+
+    progress(0.1, f"Preparing timeline from {len(shots)} shots")
+    shot_video_paths: list[Path] = []
+    total_shots = len(shots)
+
+    for i, shot in enumerate(shots):
+        if cancelled():
+            raise InterruptedError("cancel requested")
+
+        # Check if an existing completed render job exists for this shot
+        completed_job = db.scalars(
+            select(RenderJob)
+            .where(RenderJob.shot_id == shot.id, RenderJob.status == "completed", RenderJob.output_uri.isnot(None))
+            .order_by(RenderJob.created_at.desc())
+        ).first()
+
+        if completed_job and completed_job.output_uri and storage.resolve(completed_job.output_uri).exists():
+            shot_video_paths.append(storage.resolve(completed_job.output_uri))
+        else:
+            # Render this shot directly
+            progress(0.1 + (0.7 * (i / total_shots)), f"Rendering shot {i + 1}/{total_shots}: {shot.name}")
+            shot_assets = list(db.scalars(select(ImageAsset).where(ImageAsset.id.in_(shot.asset_ids))))
+            by_id = {a.id: a for a in shot_assets}
+            ordered = [by_id[aid] for aid in shot.asset_ids if aid in by_id]
+            if not ordered:
+                continue
+
+            shot_out_rel = f"projects/{job.project_id}/renders/{shot.id}_auto.mp4"
+            shot_out_path = settings_path(shot_out_rel)
+            render_safe_motion(
+                image_paths=[storage.resolve(a.storage_uri) for a in ordered],
+                output=shot_out_path,
+                duration_sec=shot.duration_sec,
+                fps=job.fps,
+                width=job.width,
+                height=job.height,
+                progress=lambda *_: None,
+                cancelled=cancelled,
+                overlay_title=shot.overlay_title,
+                subtitle_text=shot.subtitle_text,
+            )
+            shot_video_paths.append(shot_out_path)
+
+    if not shot_video_paths:
+        job.status = "failed"; job.error = "Failed to render any valid shots for timeline"; db.commit(); return
+
+    out_rel = f"projects/{job.project_id}/renders/timeline_{job.id}.mp4"
+    out_path = settings_path(out_rel)
+    bgm_path = storage.resolve(project.bgm_uri) if project.bgm_uri else None
+
+    meta = concatenate_timeline(
+        shot_video_paths=shot_video_paths,
+        output=out_path,
+        progress=progress,
+        cancelled=cancelled,
+        bgm_path=bgm_path,
+    )
+
+    if cancelled():
+        job.status = "cancelled"; db.commit(); return
+
+    job.output_uri = f"local://{out_rel}"
+    job.provenance = {**(job.provenance or {}), **meta}
+    job.progress = 1.0
+    job.status = "completed"
+    job.error = None
+    db.commit()
 
 
 def settings_path(rel: str) -> Path:

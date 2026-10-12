@@ -134,6 +134,7 @@ class SampledCamera:
     rotation_quaternion: tuple[float, float, float, float]
     focal_length_mm: float
     sensor_width_mm: float
+    confidence: float = 1.0
 
     @property
     def pose(self) -> CameraPose:
@@ -159,6 +160,7 @@ class SampledCamera:
             "rotation_quaternion": list(self.rotation_quaternion),
             "focal_length_mm": self.focal_length_mm,
             "sensor_width_mm": self.sensor_width_mm,
+            "confidence": self.confidence,
         }
 
 
@@ -260,12 +262,14 @@ class CameraPathDocument:
         u = _ease(self.easing, raw_u)
         a = self.keyframes[index]
         b = self.keyframes[index + 1]
+        conf = float(lerp((a.confidence,), (b.confidence,), u)[0])
         return SampledCamera(
             timestamp_sec=max(0.0, min(self.duration_sec, t)),
             position=self._position(index, u),
             rotation_quaternion=slerp(a.rotation_quaternion, b.rotation_quaternion, u),
             focal_length_mm=float(lerp((a.focal_length_mm,), (b.focal_length_mm,), u)[0]),
             sensor_width_mm=float(lerp((a.sensor_width_mm,), (b.sensor_width_mm,), u)[0]),
+            confidence=conf,
         )
 
     def sample_sequence(self) -> list[SampledCamera]:
