@@ -156,9 +156,20 @@ def upload_asset(project_id: str, file: UploadFile = File(...), db: Session = De
     )
     db.add(asset); db.flush()
     try:
-        uri, digest = storage.save_stream(f"projects/{project_id}/originals/{asset.id}_{filename}", file.file)
-    except Exception as e:
-        db.rollback(); raise HTTPException(400, f"upload failed: {e}")
+        uri, digest = storage.save_stream(
+            f"projects/{project_id}/originals/{asset.id}_{filename}",
+            file.file,
+            max_bytes=int(settings.max_upload_size_mb * 1024 * 1024),
+            verify_image=True,
+        )
+    except ValueError as exc:
+        db.rollback()
+        code = str(exc)
+        status_code = 413 if code in {"UPLOAD_TOO_LARGE", "IMAGE_PIXEL_LIMIT_EXCEEDED"} else 422
+        raise HTTPException(status_code, code) from None
+    except Exception:
+        db.rollback()
+        raise HTTPException(400, "Upload failed validation or storage. No asset was saved.") from None
     resolved = storage.resolve(uri)
     asset.storage_uri = uri
     asset.sha256 = digest
