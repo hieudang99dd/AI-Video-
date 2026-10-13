@@ -8,6 +8,8 @@
 - Rollback source: remote branch `backup/pre-refactor-20261013` at `a009d19355d48c076e3494fdec1134ef2b082777`
 - Original checkout was left unchanged with its ten pre-existing blank-line-only modifications.
 - PR #3 was queried through the GitHub API: open, draft, mergeable, not merged.
+- Stacked draft PR #4: `https://github.com/hieudang99dd/AI-Video-/pull/4`.
+- CI run `38343073179` at `0ea34b9376dcde681407f3c2503e7c30e2d71eab`: completed successfully (Python, Next.js and API container workflow jobs).
 
 ## Work items and result
 

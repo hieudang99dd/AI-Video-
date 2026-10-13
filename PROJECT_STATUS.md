@@ -80,10 +80,11 @@ For each merged PR add: date, HEAD SHA, issue IDs, phase, tests with exact comma
 
 ## Local Windows verification — 2026-10-13 ICT
 
-- Worktree branch: `refactor/p00-local-verification`, based on PR #3 head `130f42b239f33c09e00fe9e87cf1810632017c7e`; original dirty checkout was not modified.
+- Worktree branch: `refactor/p00-local-verification`, based on PR #3 head `130f42b239f33c09e00fe9e87cf1810632017c7e`; original dirty checkout was not modified. Stacked [draft PR #4](https://github.com/hieudang99dd/AI-Video-/pull/4) is open.
 - Fixed Windows snapshot publication by explicitly closing SQLite backup/integrity-check handles before `os.replace`.
 - Fixed BUG-001 coverage gap in deployed `docs/index.html`; both static entrypoints now initialize QC as `NOT_RUN`, refuse AI approval, and are protected by regression tests.
 - Local tests: `148 passed, 3 warnings in 5.98s`; focused P00/P01 tests: `13 passed, 3 warnings in 1.05s`.
+- [CI run #38343073179](https://github.com/hieudang99dd/AI-Video-/actions/runs/38343073179) at implementation/evidence commit `0ea34b9376dcde681407f3c2503e7c30e2d71eab` completed successfully for Python tests, Next.js build and API container build/smoke.
 - Representative CLI snapshot/verify/restore passed with identical source/restored asset SHA-256. This does **not** replace a deployment recovery drill.
 - Real CPU artifact outside Git: `../artifacts/p00-local-20261013/single_image_5s.mp4`, H.264 1280×720 at 24 fps, 5.04 s, SHA-256 `61acccbb530d75e111b59aa028d0533490b9421aaa09d407895ce875cd6b295f`; full FFmpeg decode and OpenCV first-frame decode passed. Explicit `ffprobe` is `NOT_RUN` because it is not installed.
 - Environment report: `benchmarks/reports/environment_2026-10-13.md`.
