@@ -3301,6 +3301,7 @@ const GlobalStore = {
     if (!modal) return;
     modal.style.display = "flex";
     this.run3DPointCloudSimulation();
+    this.runShotAIEnhancementQC();
   },
 
   close3DAndAIStudioModal() {
@@ -3326,7 +3327,7 @@ const GlobalStore = {
       ctx.beginPath(); ctx.moveTo(20, y); ctx.lineTo(w - 20, y); ctx.stroke();
     }
 
-    // Sparse 3D Point Cloud along infrastructure corridor
+    // Demonstration ONLY: not reconstructed point cloud data.
     for (let i = 0; i < 240; i++) {
       const t = i / 240;
       const cx = 70 + t * (w - 140) + Math.sin(t * 6.28) * 35 + (Math.sin(i * 19.7) * 28);
@@ -3377,20 +3378,19 @@ const GlobalStore = {
     }
     const aiBadge = document.getElementById("studioAIStatusBadge");
     if (aiBadge) {
-      aiBadge.textContent = activeShot && activeShot.aiEnhanced ? "AI_ENHANCED (Đã duyệt)" : "3D Gốc (Chuẩn kỹ thuật)";
+      aiBadge.textContent = "DEMO Canvas 2D — Chưa tái dựng 3D / chưa chạy AI";
     }
   },
 
   runShotAIEnhancementQC() {
-    const edgeIou = (0.91 + Math.random() * 0.06).toFixed(2);
-    const ssim = (0.94 + Math.random() * 0.04).toFixed(2);
-    const temp = (0.93 + Math.random() * 0.05).toFixed(2);
-    if (document.getElementById("qcEdgeIouVal")) document.getElementById("qcEdgeIouVal").textContent = edgeIou;
-    if (document.getElementById("qcSsimVal")) document.getElementById("qcSsimVal").textContent = ssim;
-    if (document.getElementById("qcTemporalVal")) document.getElementById("qcTemporalVal").textContent = temp;
+    // Static GitHub Pages has no render/AI QC backend. NEVER generate pretend scores.
+    for (const id of ["qcEdgeIouVal", "qcSsimVal", "qcTemporalVal"]) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = "NOT_RUN";
+    }
     const rec = document.getElementById("qcRecommendationText");
     if (rec) {
-      rec.innerHTML = `✓ <strong>Đạt chuẩn bảo toàn hình học công trình:</strong> Edge IoU = ${edgeIou} (≥ 0.72), Structural Consistency = ${ssim} (≥ 0.80). Không phát hiện biến dạng tuyến đường hoặc trụ cầu. Bạn có thể bấm <strong>Chấp nhận bản AI</strong> hoặc <strong>Quay về bản 3D Gốc</strong>.`;
+      rec.textContent = "Chưa kiểm định AI: bản GitHub Pages chỉ là demo Canvas 2D, không có output Wan2.2 hoặc video 3D thật để so sánh. Hãy dùng backend Studio sau khi inference và QC được nghiệm thu.";
     }
   },
 
@@ -3400,7 +3400,12 @@ const GlobalStore = {
       return;
     }
     const shot = this.state.shots[this.state.selectedShotIndex];
-    if (decision === "approve") {
+    if (decision === "approve" || decision === "accepted") {
+      alert("Không thể duyệt AI: GitHub Pages chưa có AI inference và QC thực. Trạng thái: NOT_RUN.");
+      this.runShotAIEnhancementQC();
+      return;
+    }
+    if (false) {
       shot.aiEnhanced = true;
       shot.aiDisclaimer = "Hình ảnh đã qua xử lý hậu kỳ AI (AI_ENHANCED), không thay thế hồ sơ thiết kế kỹ thuật gốc.";
       alert(`✓ Đã chấp nhận bản hậu kỳ AI (AI_ENHANCED) cho phân cảnh #${shot.num} "${shot.name}".`);
@@ -3684,7 +3689,7 @@ for frame_no, loc, rot in keyframes:
       dlBtn.download = `AI-Video_${safeName}.${ext}`;
       dlArea.style.display = "block";
       pctText.textContent = "100% Hoàn Tất!";
-      document.getElementById("renderStageText").textContent = "✓ Đã render xong toàn bộ video kỹ thuật!";
+      document.getElementById("renderStageText").textContent = "✓ Đã xuất bản ghi Canvas 2D (không phải camera 3D hoặc AI).";
     };
 
     recorder.start();
