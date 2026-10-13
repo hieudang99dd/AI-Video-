@@ -140,8 +140,8 @@ def test_e2e_case2_ordered_images_to_timeline_mp4_with_manifest():
         f"/api/v1/shots/{shot['id']}/ai-enhance",
         json={"module_name": "wan2_2", "prompt": "Realistic concrete bridge daylight", "seed": 42},
     )
-    assert ai_job.status_code == 200
-    assert "AI_ENHANCED" in ai_job.json()["disclaimer"]
+    assert ai_job.status_code == 422  # no completed source render; never fake success
+    assert "Render a source clip first" in ai_job.json()["detail"]
 
     qc_decision = client.post(
         f"/api/v1/shots/{shot['id']}/ai-qc/decision",
