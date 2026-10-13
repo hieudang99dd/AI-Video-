@@ -12,7 +12,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-if (_REPO_ROOT / "packages").is_dir() and str(_REPO_ROOT) not in sys.path:
-    sys.path.append(str(_REPO_ROOT))
+for _candidate in Path(__file__).resolve().parents:
+    if (_candidate / "packages").is_dir():
+        if str(_candidate) not in sys.path:
+            sys.path.append(str(_candidate))
+        break
 

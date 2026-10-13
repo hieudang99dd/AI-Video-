@@ -140,8 +140,8 @@ def test_e2e_case2_ordered_images_to_timeline_mp4_with_manifest():
         f"/api/v1/shots/{shot['id']}/ai-enhance",
         json={"module_name": "wan2_2", "prompt": "Realistic concrete bridge daylight", "seed": 42},
     )
-    assert ai_job.status_code == 200
-    assert "AI_ENHANCED" in ai_job.json()["disclaimer"]
+    assert ai_job.status_code == 422  # no completed source render; never fake success
+    assert "Render a source clip first" in ai_job.json()["detail"]
 
     qc_decision = client.post(
         f"/api/v1/shots/{shot['id']}/ai-qc/decision",
@@ -192,11 +192,13 @@ def test_failure_modes_corrupt_unsupported_and_duplicate_assets():
     )
     assert bad_ext.status_code == 415
 
-    # 2. Corrupt image bytes uploaded with .jpg extension -> graceful error in /analyze
-    client.post(
+    # 2. Invalid JPG payload rejected at upload, not deferred to analysis.
+    corrupt_upload = client.post(
         f"/api/v1/projects/{pid}/assets",
         files={"file": ("corrupt.jpg", b"not_a_valid_jpeg_stream", "image/jpeg")},
     )
+    assert corrupt_upload.status_code == 422
+    assert corrupt_upload.json()["detail"] == "INVALID_IMAGE_DATA"
     valid_bytes = _create_png_bytes(label="VALID_01")
     client.post(
         f"/api/v1/projects/{pid}/assets",
@@ -213,5 +215,5 @@ def test_failure_modes_corrupt_unsupported_and_duplicate_assets():
     items = analysis.json()["assets"]
     errors = [x for x in items if "error" in x]
     valid_items = [x for x in items if "error" not in x]
-    assert len(errors) == 1
+    assert len(errors) == 0
     assert any(x.get("is_duplicate") is True for x in valid_items)

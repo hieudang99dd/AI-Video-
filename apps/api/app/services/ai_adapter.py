@@ -69,16 +69,7 @@ class AIProviderAdapter:
         if cancel_callback():
             raise InterruptedError("AI render cancelled by user")
 
-        progress_callback(0.2, "Calling AI video service...")
-        # Out-of-process workflow dispatch placeholder
-        # Returns metadata regarding the generation
-        return {
-            "provider": "comfyui_wan2.2",
-            "model": "Wan2.2-14B-FunControl",
-            "duration_sec": duration_sec,
-            "fps": fps,
-            "fidelity_disclaimer": "AI generated visualization; not an authoritative engineering geometry source.",
-        }
+        raise NotImplementedError("AI inference adapter is not implemented; no AI artifact was produced.")
 
 
 class DUSt3RAdapter:
@@ -148,30 +139,18 @@ class Wan22Adapter:
         prompt: str,
         seed: int = 42,
     ) -> dict[str, Any]:
-        """Run optional AI video enhancement or controlled cinematic color/lighting pass when weights are absent."""
-        st = self.status()
-        if not source_video_path.exists():
+        """Fail closed until a real, independently verified Wan2.2 runner is installed.
+
+        This function must never copy input to output and label it AI-generated.
+        A future implementation must return evidence: model SHA, prompt, seed,
+        actual command/job identifier, output checksum and inference logs.
+        """
+        if not source_video_path.is_file():
             raise FileNotFoundError(f"Source render not found: {source_video_path}")
-
-        output_video_path.parent.mkdir(parents=True, exist_ok=True)
-        # If full Wan2.2 weights + enabled are present, invoke out-of-process / local model runner;
-        # otherwise if invoked in preview/controlled mode, apply deterministic cinematic tone/lighting pass
-        # while clearly recording whether full diffusion weights or controlled LUT pass was used.
-        import shutil
-
-        shutil.copy2(source_video_path, output_video_path)
-        return {
-            "module_name": "wan2_2",
-            "model_id": st.get("model_id", "Wan2.2-TI2V-5B"),
-            "weights_loaded": bool(st.get("weights_present")),
-            "execution_mode": "wan2_2_diffusion" if st.get("available") else "controlled_lighting_grade_preserve_geometry",
-            "seed": seed,
-            "prompt": prompt,
-            "source_render_path": str(source_video_path),
-            "ai_output_path": str(output_video_path),
-            "label": "AI_ENHANCED",
-            "disclaimer": self.DISCLAIMER,
-        }
+        raise NotImplementedError(
+            "Wan2.2 diffusion inference has not been integrated. "
+            "The presence of GPU or model files is NOT proof of an inference worker."
+        )
 
 
 ai_adapter = AIProviderAdapter()

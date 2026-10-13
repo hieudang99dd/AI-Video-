@@ -156,9 +156,20 @@ def upload_asset(project_id: str, file: UploadFile = File(...), db: Session = De
     )
     db.add(asset); db.flush()
     try:
-        uri, digest = storage.save_stream(f"projects/{project_id}/originals/{asset.id}_{filename}", file.file)
-    except Exception as e:
-        db.rollback(); raise HTTPException(400, f"upload failed: {e}")
+        uri, digest = storage.save_stream(
+            f"projects/{project_id}/originals/{asset.id}_{filename}",
+            file.file,
+            max_bytes=int(settings.max_upload_size_mb * 1024 * 1024),
+            verify_image=True,
+        )
+    except ValueError as exc:
+        db.rollback()
+        code = str(exc)
+        status_code = 413 if code in {"UPLOAD_TOO_LARGE", "IMAGE_PIXEL_LIMIT_EXCEEDED"} else 422
+        raise HTTPException(status_code, code) from None
+    except Exception:
+        db.rollback()
+        raise HTTPException(400, "Upload failed validation or storage. No asset was saved.") from None
     resolved = storage.resolve(uri)
     asset.storage_uri = uri
     asset.sha256 = digest
@@ -669,58 +680,24 @@ def run_shot_ai_enhancement(
     if not shot:
         raise HTTPException(404, "shot not found")
 
-    assets = list(db.scalars(select(ImageAsset).where(ImageAsset.id.in_(shot.asset_ids))))
-    by_id = {a.id: a for a in assets}
-    ordered = [by_id[aid] for aid in shot.asset_ids if aid in by_id]
-    image_paths = [storage.resolve(a.storage_uri) for a in ordered if storage.resolve(a.storage_uri).exists()]
+    # P01: NEVER report an AI job as completed without verified inference.
+    # The adapter is deliberately unavailable until Phase 09 supplies an
+    # out-of-process runner with artifacts and comparable video frame QC.
+    if body.module_name != "wan2_2":
+        raise HTTPException(422, "Unsupported AI module; no video has been generated.")
 
-    # Check if there is an existing 3D/plate render for this shot
     completed_render = db.scalars(
         select(RenderJob)
         .where(RenderJob.shot_id == shot.id, RenderJob.status == "completed", RenderJob.output_uri.isnot(None))
         .order_by(RenderJob.created_at.desc())
     ).first()
+    if not completed_render or not completed_render.output_uri or not storage.resolve(completed_render.output_uri).is_file():
+        raise HTTPException(422, "Render a source clip first. AI job was not created.")
 
-    source_uri = completed_render.output_uri if completed_render else None
-    ai_out_rel = f"projects/{shot.project_id}/renders/ai_{shot.id}_{body.seed}.mp4"
-    ai_out_uri = f"local://{ai_out_rel}"
-
-    if source_uri and storage.resolve(source_uri).exists():
-        wan22_adapter.enhance_render(
-            source_video_path=storage.resolve(source_uri),
-            output_video_path=storage.resolve(ai_out_uri),
-            prompt=body.prompt,
-            seed=body.seed,
-        )
-
-    qc_report = evaluate_ai_enhancement_qc(
-        original_frames=image_paths,
-        ai_frames=image_paths,
+    raise HTTPException(
+        status_code=503,
+        detail="Wan2.2 inference is not implemented. No AI job was started and no QC result exists.",
     )
-
-    ai_job = AIJob(
-        project_id=shot.project_id,
-        shot_id=shot.id,
-        module_name=body.module_name,
-        model_id=settings.wan_model_id,
-        status="completed",
-        prompt=body.prompt,
-        seed=body.seed,
-        source_render_uri=source_uri,
-        ai_output_uri=ai_out_uri if source_uri else None,
-        qc_passed=qc_report["qc_passed"],
-        user_decision="pending",
-        qc_metrics=qc_report,
-        disclaimer=AI_ENHANCED_DISCLAIMER,
-    )
-    db.add(ai_job)
-    shot.ai_enabled = True
-    shot.ai_status = "qc_passed_pending_approval" if qc_report["qc_passed"] else "qc_warning"
-    shot.ai_output_uri = ai_job.ai_output_uri
-    shot.qc_report = qc_report
-    db.commit(); db.refresh(ai_job)
-    return ai_job
-
 
 @router.post("/shots/{shot_id}/ai-qc/decision", response_model=ShotOut)
 def decide_shot_ai_qc(
@@ -736,6 +713,16 @@ def decide_shot_ai_qc(
     latest_ai_job = db.scalars(
         select(AIJob).where(AIJob.shot_id == shot_id).order_by(AIJob.created_at.desc())
     ).first()
+    if body.decision != "rejected":
+        if (
+            latest_ai_job is None
+            or latest_ai_job.status != "completed"
+            or not latest_ai_job.qc_passed
+            or not (latest_ai_job.qc_metrics or {}).get("verified_video_comparison") is True
+            or not latest_ai_job.ai_output_uri
+            or not storage.resolve(latest_ai_job.ai_output_uri).is_file()
+        ):
+            raise HTTPException(409, "No independently QC-passed AI video exists to approve.")
     if latest_ai_job:
         latest_ai_job.user_decision = body.decision
 

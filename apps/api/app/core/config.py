@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_env: str = "development"
+    # Production lockdown until Phase 11 ships per-user auth and tenant ownership.
+    api_access_token: str = ""
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     database_url: str = f"sqlite:///{(_tmp / 'cinevideo.db').as_posix()}"
     redis_url: str | None = None
     storage_backend: str = "local"
@@ -34,6 +37,7 @@ class Settings(BaseSettings):
 
     # Upload & Job Management Security
     max_upload_size_mb: int = 50
+    max_image_pixels: int = 50000000
     max_assets_per_project: int = 200
     job_timeout_sec: int = 1800
     enable_background_worker: bool = True

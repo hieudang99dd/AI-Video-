@@ -1,0 +1,60 @@
+name: Refactor baseline and CPU regression
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [refactor/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install API dependencies and test tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e './apps/api[dev]'
+      - name: Static Python compile and import
+        run: |
+          python -m compileall -q apps/api/app packages tests
+          python -c "from app.main import app; import packages.geometry.camera_path; print(app.title)"
+        env:
+          PYTHONPATH: apps/api:.
+      - name: Full CPU test suite (no GPU assertions)
+        run: python -m pytest -q --disable-warnings --maxfail=1
+        env:
+          PYTHONPATH: apps/api:.
+          APP_ENV: development
+
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+
+  api-image-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image from clean repository context
+        run: docker build -f apps/api/Dockerfile -t ai-video-cpu-api-ci .
+      - name: Image import and startup smoke
+        run: |
+          docker run --rm ai-video-cpu-api-ci python -c 'from app.main import app; from packages.geometry.camera_path import CameraPathDocument; print(app.title)'

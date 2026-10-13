@@ -187,16 +187,16 @@ def test_ai_modules_license_and_qc_guard(tmp_path):
     assert statuses["dust3r"]["commercial_allowed"] is False
     assert statuses["wan2_2"]["license"] == "Apache-2.0"
 
-    # AI QC should pass when comparing identical frames
+    # Unit-only pair comparison; this does not prove AI inference occurred
     f1 = _make_test_image(tmp_path / "orig.jpg", draw_lines=True)
-    qc_ok = evaluate_ai_enhancement_qc([f1], [f1])
+    qc_ok = evaluate_ai_enhancement_qc([f1, f1], [f1, f1])
     assert qc_ok["qc_passed"] is True
     assert qc_ok["label"] == "AI_ENHANCED"
     assert AI_ENHANCED_DISCLAIMER in qc_ok["disclaimer"]
 
     # AI QC should flag geometry distortion when AI frame loses structural edges
     f_blank = _make_test_image(tmp_path / "distorted.jpg", color=(20, 20, 20), draw_lines=False)
-    qc_bad = evaluate_ai_enhancement_qc([f1], [f_blank])
+    qc_bad = evaluate_ai_enhancement_qc([f1, f1], [f_blank, f_blank])
     assert qc_bad["qc_passed"] is False
     assert qc_bad["recommendation"] == "reject_and_revert_to_3d"
     assert len(qc_bad["warnings"]) >= 1
