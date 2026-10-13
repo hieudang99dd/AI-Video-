@@ -6,13 +6,13 @@
 
 ## Current phase
 
-**P00 — IN_PROGRESS** (baseline source inspected; backup branch created; new CPU CI workflow and regression fixes prepared on a feature branch; CI result/DB restore still required). **G00 not passed.** P01 fixes are staged for review but **G01 not passed**.
+**P00 — IN_PROGRESS** (baseline source inspected, backup branch created, and [CI run #38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080) completed: **143 Python tests PASSED (3 warnings), Next.js build PASSED, API Docker build + import smoke PASSED** at commit `1f11d81c4ac9eec959252d074482c5e485c68ecf`). Deployment DB/storage backup + restore remains inaccessible. **G00 not passed.** P01 fixes staged for review but **G01 not passed**.
 
 ## Phase tracker (complete the evidence before any GATE_PASSED)
 
 | Phase | State | Evidence / PR | Critical blocker |
 |---|---|---|---|
-| P00 | IN_PROGRESS | [#1](https://github.com/hieudang99dd/AI-Video-/issues/1), backup branch, CI workflow on feature branch | CI results and DB/storage backup+restore pending |
+| P00 | IN_PROGRESS | [#1](https://github.com/hieudang99dd/AI-Video-/issues/1), backup branch, CI workflow on feature branch | 143 pytest, Next build, Docker smoke PASS on #38338254080; DB/storage backup+restore still pending |
 | P01 | IN_PROGRESS | [#2](https://github.com/hieudang99dd/AI-Video-/issues/2), P0 code fixes staged on feature branch | per-user/tenant auth and live AI/QC verification still missing |
 | P02 | NOT_STARTED | — | Docker packaging and GPU container validation |
 | P03 | NOT_STARTED | — | atomic jobs, dedup, migration |
@@ -40,7 +40,7 @@ Valid values: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `GATE_PASSED`, `REOPENED`
 ## Immediate execution checklist
 
 - [x] P00-01 create `backup/pre-refactor-20261013` branch from baseline commit `a009d193`\n- [ ] P00-01b backup and **restore test** for deployment DB/storage (cannot access from GitHub only)
-- [x] P00-02a add CI workflow on feature branch for `pytest`, Next build and API Docker clean build\n- [ ] P00-02b check CI logs; do not claim tests passed before execution
+- [x] P00-02a add CI workflow on feature branch for `pytest`, Next build and API Docker clean build\n- [x] P00-02b verify [GitHub Actions run #38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080): `python -m pytest -q --disable-warnings --maxfail=1` → **143 passed, 3 warnings in 2.98s**; Next.js `npm run build` PASS; API image Docker build + import PASS (verified GitHub Actions job conclusions)
 - [x] P00-03 inspect code tree + core modules at baseline\n- [ ] P00-03b inventory deployment datasets and backup artifacts
 - [x] P00-04 create [P00 issue #1](https://github.com/hieudang99dd/AI-Video-/issues/1) and [P01 issue #2](https://github.com/hieudang99dd/AI-Video-/issues/2)\n- [ ] P00-04b create/assign remaining issue tickets for P02–P11
 - [x] P00-05 open controlled branch `refactor/p00-p01-truthfulness-foundation`; never fake completed
@@ -59,6 +59,14 @@ For each merged PR add: date, HEAD SHA, issue IDs, phase, tests with exact comma
 - BUG-005 partial: production-only Bearer access token with startup lockout if unset, CORS allowlist; **NOT tenant authentication**.
 - BUG-006 partial: API container now copies shared packages and smoke-imports project.
 - Regression tests: new `tests/unit/test_truthfulness_regressions.py`, updates existing e2e/master tests.
-- CI: `.github/workflows/refactor-cpu-ci.yml` committed to implementation branch; **result pending until GitHub Actions runs**.
+- CI: `.github/workflows/refactor-cpu-ci.yml`; **run #38338254080 PASS** for all three jobs, commit `1f11d81c` (143 pytest PASS, web PASS, API image PASS). This is CPU/build evidence only, not GPU or real Civil3D dataset certification.
 - Full P00 prerequisite still open: actual DB/storage backup and restore, clean full baseline tests, deployment-specific hardware verification.
 - No GPU reconstruction, Blender execution, Wan inference or model license claims verified here. **G00 and G01 remain OPEN**.
+
+## Evidence ledger — 2026-10-13
+
+| Commit tested | Workflow run | Tests | Web | API container | Remaining |
+|---|---|---|---|---|---|
+| `1f11d81c4ac9eec959252d074482c5e485c68ecf` | [38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080) | **143 PASS**, 3 warnings | **PASS** | **PASS** (build + Python import) | Full user DB/storage backup + restore; auth tenant model; GPU/live reconstruction/AI, CPU E2E on real Civil3D datasets |
+
+These test results apply to the implementation SHA shown in the table; a later documentation-only commit must not be represented as independently tested until its CI completes. Phase gates remain open.
