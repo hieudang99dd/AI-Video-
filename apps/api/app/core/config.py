@@ -34,6 +34,7 @@ class Settings(BaseSettings):
 
     # Upload & Job Management Security
     max_upload_size_mb: int = 50
+    max_image_pixels: int = 50000000
     max_assets_per_project: int = 200
     job_timeout_sec: int = 1800
     enable_background_worker: bool = True
