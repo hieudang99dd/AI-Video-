@@ -3344,7 +3344,7 @@ const GlobalStore = {
     ctx.bezierCurveTo(180, h - 90, 320, 120, w - 80, 75);
     ctx.stroke();
 
-    // Camera Frustums along trajectory
+    // Visually illustrative frustums ONLY — not camera poses from COLMAP.\n    // Camera Frustums along trajectory
     const frustums = [
       { x: 85, y: h - 42, label: "Cam #1" },
       { x: 205, y: h - 105, label: "Cam #2" },
@@ -3395,26 +3395,20 @@ const GlobalStore = {
   },
 
   decideShotAIQC(decision) {
+    // The static Pages demo cannot verify/approve any AI result.
     if (!this.state.shots || this.state.selectedShotIndex === null) {
-      alert("Vui lòng chọn hoặc tạo ít nhất 1 phân cảnh trước khi áp dụng QC.");
+      alert("Vui lòng chọn phân cảnh.");
       return;
     }
     const shot = this.state.shots[this.state.selectedShotIndex];
     if (decision === "approve" || decision === "accepted") {
-      alert("Không thể duyệt AI: GitHub Pages chưa có AI inference và QC thực. Trạng thái: NOT_RUN.");
       this.runShotAIEnhancementQC();
+      alert("Không có kết quả AI/QC thực để phê duyệt. Hãy kết nối backend inference khi được triển khai.");
       return;
     }
-    if (false) {
-      shot.aiEnhanced = true;
-      shot.aiDisclaimer = "Hình ảnh đã qua xử lý hậu kỳ AI (AI_ENHANCED), không thay thế hồ sơ thiết kế kỹ thuật gốc.";
-      alert(`✓ Đã chấp nhận bản hậu kỳ AI (AI_ENHANCED) cho phân cảnh #${shot.num} "${shot.name}".`);
-    } else {
-      shot.aiEnhanced = false;
-      shot.aiDisclaimer = null;
-      alert(`↺ Đã từ chối bản AI và khôi phục bản 3D Render gốc cho phân cảnh #${shot.num} "${shot.name}".`);
-    }
-    this.run3DPointCloudSimulation();
+    shot.aiEnhanced = false;
+    shot.aiDisclaimer = null;
+    this.runShotAIEnhancementQC();
     this.populatePropertiesCol();
     this.drawEditorFrame(this.state.playback.currentTime);
     this.triggerAutoSave();
