@@ -718,6 +718,7 @@ def decide_shot_ai_qc(
             latest_ai_job is None
             or latest_ai_job.status != "completed"
             or not latest_ai_job.qc_passed
+            or not (latest_ai_job.qc_metrics or {}).get("verified_video_comparison") is True
             or not latest_ai_job.ai_output_uri
             or not storage.resolve(latest_ai_job.ai_output_uri).is_file()
         ):
