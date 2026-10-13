@@ -196,7 +196,7 @@ def test_ai_modules_license_and_qc_guard(tmp_path):
 
     # AI QC should flag geometry distortion when AI frame loses structural edges
     f_blank = _make_test_image(tmp_path / "distorted.jpg", color=(20, 20, 20), draw_lines=False)
-    qc_bad = evaluate_ai_enhancement_qc([f1], [f_blank])
+    qc_bad = evaluate_ai_enhancement_qc([f1, f1], [f_blank, f_blank])
     assert qc_bad["qc_passed"] is False
     assert qc_bad["recommendation"] == "reject_and_revert_to_3d"
     assert len(qc_bad["warnings"]) >= 1
