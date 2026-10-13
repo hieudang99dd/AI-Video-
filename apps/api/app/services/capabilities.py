@@ -147,23 +147,21 @@ def get_capabilities() -> dict:
             },
             "moverse": {
                 "enabled": settings.moverse_enabled,
-                "available": bool(settings.moverse_enabled),
+                "available": False,
                 "endpoint": settings.moverse_endpoint,
                 "license": "Apache-2.0 / Research",
-                "reason": "Ready" if settings.moverse_enabled else "Optional AI camera trajectory planner disabled by default",
+                "reason": "MoVerse inference adapter not implemented; flag does not mean runnable",
             },
             "wan2_2": {
                 "enabled": settings.wan_enabled,
-                "available": bool(settings.wan_enabled and effective_vram >= 12.0 and wan_weights_ready),
+                "available": False,
                 "model_id": settings.wan_model_id,
                 "weights_present": wan_weights_ready,
                 "vram_detected_gb": effective_vram,
                 "min_vram_gb": 16.0,
                 "license": "Apache-2.0",
                 "reason": (
-                    "Ready"
-                    if (settings.wan_enabled and effective_vram >= 12.0 and wan_weights_ready)
-                    else "Optional Wan2.2-TI2V-5B enhancement disabled or model weights not downloaded under models_root"
+                    "Wan2.2 worker not implemented. GPU/weights alone do not enable inference"
                 ),
             },
         },
