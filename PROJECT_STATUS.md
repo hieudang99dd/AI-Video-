@@ -6,14 +6,14 @@
 
 ## Current phase
 
-**P00 — NOT_STARTED** (baseline source inventory and planning produced; baseline tests, data backup/restore, tag, issues and clean builds still to be performed). Agent must begin with P00. No phase gate is marked passed.
+**P00 — IN_PROGRESS** (baseline source inspected; backup branch created; new CPU CI workflow and regression fixes prepared on a feature branch; CI result/DB restore still required). **G00 not passed.** P01 fixes are staged for review but **G01 not passed**.
 
 ## Phase tracker (complete the evidence before any GATE_PASSED)
 
 | Phase | State | Evidence / PR | Critical blocker |
 |---|---|---|---|
-| P00 | NOT_STARTED | Plan and source static audit only | clean build/test/backup pending |
-| P01 | NOT_STARTED | — | QC fake success, AI stub, auth/upload gaps |
+| P00 | IN_PROGRESS | [#1](https://github.com/hieudang99dd/AI-Video-/issues/1), backup branch, CI workflow on feature branch | CI results and DB/storage backup+restore pending |
+| P01 | IN_PROGRESS | [#2](https://github.com/hieudang99dd/AI-Video-/issues/2), P0 code fixes staged on feature branch | per-user/tenant auth and live AI/QC verification still missing |
 | P02 | NOT_STARTED | — | Docker packaging and GPU container validation |
 | P03 | NOT_STARTED | — | atomic jobs, dedup, migration |
 | P04 | NOT_STARTED | — | benchmarked ingestion/grouping |
@@ -39,12 +39,26 @@ Valid values: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `GATE_PASSED`, `REOPENED`
 
 ## Immediate execution checklist
 
-- [ ] P00-01 baseline tag/backup and restore test
-- [ ] P00-02 run `pytest`, Next build, CPU Docker clean build; save logs
-- [ ] P00-03 inventory current endpoints and dataset artifacts
-- [ ] P00-04 create prioritized issues BUG-001..BUG-030; assign phase owners
-- [ ] P00-05 open controlled P01 feature branches; never fake completed
+- [x] P00-01 create `backup/pre-refactor-20261013` branch from baseline commit `a009d193`\n- [ ] P00-01b backup and **restore test** for deployment DB/storage (cannot access from GitHub only)
+- [x] P00-02a add CI workflow on feature branch for `pytest`, Next build and API Docker clean build\n- [ ] P00-02b check CI logs; do not claim tests passed before execution
+- [x] P00-03 inspect code tree + core modules at baseline\n- [ ] P00-03b inventory deployment datasets and backup artifacts
+- [x] P00-04 create [P00 issue #1](https://github.com/hieudang99dd/AI-Video-/issues/1) and [P01 issue #2](https://github.com/hieudang99dd/AI-Video-/issues/2)\n- [ ] P00-04b create/assign remaining issue tickets for P02–P11
+- [x] P00-05 open controlled branch `refactor/p00-p01-truthfulness-foundation`; never fake completed
 
 ## Update protocol
 
 For each merged PR add: date, HEAD SHA, issue IDs, phase, tests with exact commands and results, source dataset/version, output artifacts/ffprobe, GPU/VRAM if used, blockers, reviewer, fallback/rollback procedure. The phase gate may change to `GATE_PASSED` only when every criterion in `MASTER_REFACTOR_PLAN.md` is demonstrated.
+
+## P00/P01 engineering changes staged (branch only — 2026-10-13)
+- Source baseline: `main@a009d19355d48c076e3494fdec1134ef2b082777`.
+- Rollback source: `backup/pre-refactor-20261013` (GitHub branch, **not a DB backup**).
+- BUG-001: GitHub Pages QC scores now show NOT_RUN; static AI approval cannot be accepted.
+- BUG-003/004: Wan2.2 copy-to-video adapter replaced by explicit NotImplementedError; AI endpoint responds 422 without source/503 without implementation.
+- BUG-017: QC fails closed on missing/unmatched inputs and on insufficient temporal frame evidence; scores are nullable instead of fabricated.
+- BUG-008: storage accepts max_bytes, writes atomically, verifies PNG/JPEG/WebP bytes and pixel cap before publishing; corrupt files 422, oversize 413.
+- BUG-005 partial: production-only Bearer access token with startup lockout if unset, CORS allowlist; **NOT tenant authentication**.
+- BUG-006 partial: API container now copies shared packages and smoke-imports project.
+- Regression tests: new `tests/unit/test_truthfulness_regressions.py`, updates existing e2e/master tests.
+- CI: `.github/workflows/refactor-cpu-ci.yml` committed to implementation branch; **result pending until GitHub Actions runs**.
+- Full P00 prerequisite still open: actual DB/storage backup and restore, clean full baseline tests, deployment-specific hardware verification.
+- No GPU reconstruction, Blender execution, Wan inference or model license claims verified here. **G00 and G01 remain OPEN**.
