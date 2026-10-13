@@ -189,7 +189,7 @@ def test_ai_modules_license_and_qc_guard(tmp_path):
 
     # Unit-only pair comparison; this does not prove AI inference occurred
     f1 = _make_test_image(tmp_path / "orig.jpg", draw_lines=True)
-    qc_ok = evaluate_ai_enhancement_qc([f1], [f1])
+    qc_ok = evaluate_ai_enhancement_qc([f1, f1], [f1, f1])
     assert qc_ok["qc_passed"] is True
     assert qc_ok["label"] == "AI_ENHANCED"
     assert AI_ENHANCED_DISCLAIMER in qc_ok["disclaimer"]
