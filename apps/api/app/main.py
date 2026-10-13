@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
 from app.api.routes import router
-from app.db.session import Base, engine
+from app.db.session import Base, engine, ensure_sqlite_schema
 from app.ui import get_ui_html
 
-app = FastAPI(title="Image-to-Cinematic-Video API", version="0.1.0")
+app = FastAPI(title="Image-to-Cinematic-Video API", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,4 +25,5 @@ def serve_ui():
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(engine)
+    ensure_sqlite_schema(engine)
+

@@ -6,14 +6,17 @@ from pathlib import Path
 from sqlalchemy import select
 
 from app.db.session import Base, SessionLocal, engine
-from app.models.entities import ImageAsset, RenderJob, Scene, Shot
+from app.models.entities import ImageAsset, Project, RenderJob, Scene, Shot
 from app.services import messages
+from app.services.blender_engine import export_and_optionally_run_blender_scene
+from app.services.camera_planner import generate_shot_camera_plan, get_camera_preset
 from app.services.geometry_backend import (
     GeometryError,
     GeometryQualityRejected,
     GeometryUnavailable,
     get_geometry_backend,
 )
+from app.services.job_manager import PipelineState, redact_secrets, transition_job_state
 from app.services.queue import pop_render
 from app.services.renderer import (
     GeometryPathRejected,
@@ -29,6 +32,7 @@ from app.services.scenes import (
     scene_asset_paths,
     scene_workdir,
     select_scene_for_shot,
+    storage_uri_for,
 )
 from app.services.storage import storage
 
@@ -45,12 +49,15 @@ def process(job_id: str) -> None:
         job = db.get(RenderJob, job_id)
         if not job or job.status not in {"queued", "retry_wait"}:
             return
-        job.status = "processing"; job.progress = 0.02; db.commit()
+        job.status = "processing"
+        job.progress = 0.02
+        transition_job_state(job, PipelineState.VALIDATING, "Validating project inputs and capabilities")
+        db.commit()
 
         def progress(value: float, message: str):
             db.expire(job)
             job.progress = max(job.progress, min(1.0, value))
-            job.provenance = {**(job.provenance or {}), "last_message": message}
+            job.provenance = {**(job.provenance or {}), "last_message": redact_secrets(message)}
             db.commit()
 
         def cancelled() -> bool:
@@ -65,9 +72,15 @@ def process(job_id: str) -> None:
             else:
                 _process_render(db, job, progress, cancelled)
         except InterruptedError as e:
-            job.status = "cancelled"; job.error = str(e); db.commit()
+            job.status = "cancelled"
+            job.error = redact_secrets(str(e))
+            transition_job_state(job, PipelineState.CANCELLED, str(e))
+            db.commit()
         except Exception as e:  # noqa: BLE001 — every failure must stay observable
-            job.status = "failed"; job.error = str(e); db.commit()
+            job.status = "failed"
+            job.error = redact_secrets(str(e))
+            transition_job_state(job, PipelineState.FAILED, str(e))
+            db.commit()
 
 
 # --------------------------------------------------------------------------- #
@@ -77,17 +90,23 @@ def _process_reconstruction(db, job: RenderJob, progress) -> None:
     scene_id = (job.provenance or {}).get("scene_id")
     scene = db.get(Scene, scene_id) if scene_id else None
     if scene is None:
-        job.status = "failed"; job.error = "scene not found for this reconstruction job"
+        job.status = "failed"
+        job.error = "scene not found for this reconstruction job"
+        transition_job_state(job, PipelineState.FAILED, job.error)
         db.commit()
         return
 
     image_paths = scene_asset_paths(db, scene)
     if not image_paths:
         mark_reconstruction_failed(scene, "scene has no uploaded images")
-        job.status = "failed"; job.error = "scene has no uploaded images"; db.commit()
+        job.status = "failed"
+        job.error = "scene has no uploaded images"
+        transition_job_state(job, PipelineState.FAILED, job.error)
+        db.commit()
         return
 
     scene.reconstruction_status = "running"
+    transition_job_state(job, PipelineState.RECONSTRUCTING, f"Reconstructing {len(image_paths)} images with COLMAP")
     db.commit()
     backend = get_geometry_backend()
     workdir = scene_workdir(scene)
@@ -99,6 +118,7 @@ def _process_reconstruction(db, job: RenderJob, progress) -> None:
         apply_reconstruction_rejection(scene, exc)
         job.status = "failed"
         job.error = messages.INSUFFICIENT_OVERLAP + " Reasons: " + "; ".join(exc.reasons)
+        transition_job_state(job, PipelineState.FAILED, job.error)
         job.provenance = {
             **(job.provenance or {}),
             "scene": scene.diagnostics,
@@ -108,14 +128,21 @@ def _process_reconstruction(db, job: RenderJob, progress) -> None:
         return
     except (GeometryUnavailable, GeometryError) as exc:
         mark_reconstruction_failed(scene, str(exc))
-        job.status = "failed"; job.error = str(exc); db.commit()
+        job.status = "failed"
+        job.error = redact_secrets(str(exc))
+        transition_job_state(job, PipelineState.FAILED, job.error)
+        db.commit()
         return
 
     apply_reconstruction_success(scene, result)
+    scene.scale_status = "uncalibrated"
+    scene.coordinate_system = "uncalibrated_local"
+    scene.unit = "relative_units"
     job.output_uri = scene.representation_uri
     job.progress = 1.0
     job.status = "completed"
     job.error = None
+    transition_job_state(job, PipelineState.COMPLETED, "3D reconstruction completed")
     job.provenance = {
         **(job.provenance or {}),
         "scene": result.metadata,
@@ -125,6 +152,7 @@ def _process_reconstruction(db, job: RenderJob, progress) -> None:
         "registered_image_ratio": result.registered_image_ratio,
         "camera_count": result.camera_count,
         "geometry_confidence": result.metadata.get("geometry_confidence"),
+        "scale_status": "uncalibrated",
     }
     db.commit()
 
@@ -135,7 +163,11 @@ def _process_reconstruction(db, job: RenderJob, progress) -> None:
 def _process_render(db, job: RenderJob, progress, cancelled) -> None:
     shot = db.get(Shot, job.shot_id) if job.shot_id else None
     if not shot:
-        job.status = "failed"; job.error = "shot not found"; db.commit(); return
+        job.status = "failed"
+        job.error = "shot not found"
+        transition_job_state(job, PipelineState.FAILED, "shot not found")
+        db.commit()
+        return
 
     assets = list(db.scalars(select(ImageAsset).where(ImageAsset.id.in_(shot.asset_ids))))
     by_id = {a.id: a for a in assets}
@@ -143,13 +175,60 @@ def _process_render(db, job: RenderJob, progress, cancelled) -> None:
     image_paths = [storage.resolve(a.storage_uri) for a in ordered]
     out_rel = f"projects/{job.project_id}/renders/{job.id}.mp4"
     out_path = settings_path(out_rel)
+
+    transition_job_state(job, PipelineState.CAMERA_PLANNING, "Generating camera trajectory plan")
+    preset_id = getattr(shot, "preset", None) or "establishing_shot"
+    camera_plan = generate_shot_camera_plan(
+        preset_id=preset_id,
+        source_mode=getattr(shot, "source_mode", "auto") or "auto",
+        asset_ids=shot.asset_ids,
+        duration_sec=shot.duration_sec,
+        fps=job.fps,
+        fov_deg=getattr(shot, "fov_deg", 50.0),
+        speed=getattr(shot, "speed", 1.0),
+        shake_level=getattr(shot, "shake_level", 0.0),
+        easing=shot.easing,
+    )
+    if not getattr(shot, "trajectory", None):
+        shot.start_pose = camera_plan["start_pose"]
+        shot.end_pose = camera_plan["end_pose"]
+        shot.trajectory = camera_plan["trajectory"]
+        shot.source_mode = camera_plan["source_mode"]
+
+    blender_dir = settings_path(f"projects/{job.project_id}/blender")
+    blender_info = export_and_optionally_run_blender_scene(
+        shot_id=shot.id,
+        shot_name=shot.name,
+        camera_plan=camera_plan,
+        image_paths=image_paths,
+        workdir=blender_dir,
+        output_mp4_path=out_path,
+        width=job.width,
+        height=job.height,
+        fps=job.fps,
+        execute_if_available=False,
+    )
+    try:
+        shot.blender_script_uri = storage_uri_for(Path(blender_info["blender_script_path"]))
+        shot.camera_path_uri = storage_uri_for(Path(blender_info["camera_trajectory_path"]))
+    except Exception:
+        pass
+
+    transition_job_state(job, PipelineState.RENDERING, f"Rendering shot {shot.name}")
     job.provenance = {
         **(job.provenance or {}),
         "requested_mode": job.mode,
+        "camera_source_mode": camera_plan["source_mode"],
+        "camera_preset": preset_id,
+        "blender_export": blender_info,
         "input_asset_hashes": [a.sha256 for a in ordered],
         "render_config": {
-            "mode": job.mode, "width": job.width, "height": job.height,
-            "fps": job.fps, "duration_sec": shot.duration_sec, "easing": shot.easing,
+            "mode": job.mode,
+            "width": job.width,
+            "height": job.height,
+            "fps": job.fps,
+            "duration_sec": shot.duration_sec,
+            "easing": shot.easing,
         },
     }
     db.commit()
@@ -168,6 +247,7 @@ def _process_render(db, job: RenderJob, progress, cancelled) -> None:
                 "effective_mode": "2.5d_lite",
             }
             db.commit()
+        preset_obj = get_camera_preset(preset_id)
         meta = render_safe_motion(
             image_paths=image_paths,
             output=out_path,
@@ -179,13 +259,20 @@ def _process_render(db, job: RenderJob, progress, cancelled) -> None:
             cancelled=cancelled,
             overlay_title=shot.overlay_title,
             subtitle_text=shot.subtitle_text,
+            motion_config=preset_obj.motion_2d,
         )
 
     if cancelled():
-        job.status = "cancelled"; db.commit(); return
+        job.status = "cancelled"
+        transition_job_state(job, PipelineState.CANCELLED, "Cancelled by user")
+        db.commit()
+        return
     job.output_uri = f"local://{out_rel}"
     job.provenance = {**(job.provenance or {}), **meta}
-    job.progress = 1.0; job.status = "completed"; job.error = None
+    job.progress = 1.0
+    job.status = "completed"
+    job.error = None
+    transition_job_state(job, PipelineState.COMPLETED, "Shot render completed")
     db.commit()
 
 
@@ -241,16 +328,23 @@ def _try_geometry_render(db, job: RenderJob, shot: Shot, out_path: Path, progres
 
 def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
     """Render and concatenate all shots in the project into a continuous master MP4."""
-    from app.models.entities import Project
-
     project = db.get(Project, job.project_id)
     if not project:
-        job.status = "failed"; job.error = "Project not found"; db.commit(); return
+        job.status = "failed"
+        job.error = "Project not found"
+        transition_job_state(job, PipelineState.FAILED, job.error)
+        db.commit()
+        return
 
     shots = list(db.scalars(select(Shot).where(Shot.project_id == job.project_id).order_by(Shot.created_at)))
     if not shots:
-        job.status = "failed"; job.error = "No shots in project to assemble timeline"; db.commit(); return
+        job.status = "failed"
+        job.error = "No shots in project to assemble timeline"
+        transition_job_state(job, PipelineState.FAILED, job.error)
+        db.commit()
+        return
 
+    transition_job_state(job, PipelineState.RENDERING, f"Preparing timeline from {len(shots)} shots")
     progress(0.1, f"Preparing timeline from {len(shots)} shots")
     shot_video_paths: list[Path] = []
     total_shots = len(shots)
@@ -258,6 +352,16 @@ def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
     for i, shot in enumerate(shots):
         if cancelled():
             raise InterruptedError("cancel requested")
+
+        # If AI enhancement was explicitly accepted for this shot and exists, use it
+        if (
+            getattr(shot, "ai_enabled", False)
+            and getattr(shot, "ai_status", "") == "accepted"
+            and getattr(shot, "ai_output_uri", None)
+            and storage.resolve(shot.ai_output_uri).exists()
+        ):
+            shot_video_paths.append(storage.resolve(shot.ai_output_uri))
+            continue
 
         # Check if an existing completed render job exists for this shot
         completed_job = db.scalars(
@@ -279,6 +383,7 @@ def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
 
             shot_out_rel = f"projects/{job.project_id}/renders/{shot.id}_auto.mp4"
             shot_out_path = settings_path(shot_out_rel)
+            preset_obj = get_camera_preset(getattr(shot, "preset", "establishing_shot") or "establishing_shot")
             render_safe_motion(
                 image_paths=[storage.resolve(a.storage_uri) for a in ordered],
                 output=shot_out_path,
@@ -290,15 +395,22 @@ def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
                 cancelled=cancelled,
                 overlay_title=shot.overlay_title,
                 subtitle_text=shot.subtitle_text,
+                motion_config=preset_obj.motion_2d,
             )
             shot_video_paths.append(shot_out_path)
 
     if not shot_video_paths:
-        job.status = "failed"; job.error = "Failed to render any valid shots for timeline"; db.commit(); return
+        job.status = "failed"
+        job.error = "Failed to render any valid shots for timeline"
+        transition_job_state(job, PipelineState.FAILED, job.error)
+        db.commit()
+        return
 
+    transition_job_state(job, PipelineState.COMPOSING, "Composing final H.264 MP4 timeline")
     out_rel = f"projects/{job.project_id}/renders/timeline_{job.id}.mp4"
     out_path = settings_path(out_rel)
     bgm_path = storage.resolve(project.bgm_uri) if project.bgm_uri else None
+    prov = dict(job.provenance or {})
 
     meta = concatenate_timeline(
         shot_video_paths=shot_video_paths,
@@ -306,16 +418,27 @@ def _process_timeline_render(db, job: RenderJob, progress, cancelled) -> None:
         progress=progress,
         cancelled=cancelled,
         bgm_path=bgm_path,
+        intro_title=prov.get("intro_title"),
+        outro_title=prov.get("outro_title"),
+        width=job.width,
+        height=job.height,
+        fps=job.fps,
     )
 
     if cancelled():
-        job.status = "cancelled"; db.commit(); return
+        job.status = "cancelled"
+        transition_job_state(job, PipelineState.CANCELLED, "Cancelled by user")
+        db.commit()
+        return
 
     job.output_uri = f"local://{out_rel}"
     job.provenance = {**(job.provenance or {}), **meta}
     job.progress = 1.0
     job.status = "completed"
     job.error = None
+    project.pipeline_state = PipelineState.COMPLETED.value
+    project.status = "completed"
+    transition_job_state(job, PipelineState.COMPLETED, "Timeline composition completed")
     db.commit()
 
 
@@ -337,3 +460,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

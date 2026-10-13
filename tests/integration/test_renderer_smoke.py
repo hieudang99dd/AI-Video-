@@ -4,10 +4,11 @@ import tempfile
 from PIL import Image
 import pytest
 
+from app.services.capabilities import get_capabilities
 from app.services.renderer import render_safe_motion
 
 
-@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
+@pytest.mark.skipif(not get_capabilities()["ffmpeg"]["available"], reason="ffmpeg not installed")
 def test_safe_renderer_outputs_mp4():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)

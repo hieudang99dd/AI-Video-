@@ -146,6 +146,32 @@ def encode_frame_sequence(
     return {"frames": len(frames), "fps": fps, "codec": "h264", "encoder": "ffmpeg_concat_v1"}
 
 
+def _generate_title_card_clip(
+    title: str,
+    subtitle: str,
+    output: Path,
+    width: int,
+    height: int,
+    fps: int,
+    duration_sec: float = 2.0,
+) -> Path:
+    """Render a clean engineering title/outro card clip with FFmpeg."""
+    img = Image.new("RGB", (width, height), (9, 13, 22))
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    draw.rectangle([(40, 40), (width - 40, height - 40)], outline=(14, 165, 233), width=2)
+    draw.text((80, height // 2 - 24), title.upper(), fill=(240, 249, 255), font=font)
+    draw.text((80, height // 2 + 8), subtitle, fill=(148, 163, 184), font=font)
+
+    total_frames = max(2, int(duration_sec * fps))
+    with tempfile.TemporaryDirectory(prefix="cinevideo-card-") as tmp:
+        card_img = Path(tmp) / "card.jpg"
+        img.save(card_img, quality=92)
+        frames = [card_img] * total_frames
+        encode_frame_sequence(frames, output, fps, lambda *_: None, lambda: False)
+    return output
+
+
 def render_safe_motion(
     image_paths: list[Path],
     output: Path,
@@ -157,12 +183,18 @@ def render_safe_motion(
     cancelled: CancelFn,
     overlay_title: str | None = None,
     subtitle_text: str | None = None,
+    motion_config: dict | None = None,
 ) -> dict:
     if not image_paths:
         raise ValueError("shot has no images")
 
     total_frames = max(2, int(duration_sec * fps))
     output.parent.mkdir(parents=True, exist_ok=True)
+    mcfg = motion_config or {}
+    start_scale = float(mcfg.get("start_scale", 1.0))
+    end_scale = float(mcfg.get("end_scale", 1.06))
+    pan_x_range = mcfg.get("pan_x")
+    pan_y_range = mcfg.get("pan_y")
 
     with tempfile.TemporaryDirectory(prefix="cinevideo-") as tmp:
         tmpdir = Path(tmp)
@@ -178,11 +210,19 @@ def render_safe_motion(
                 local_t = position - math.floor(position)
                 eased = _ease(local_t)
 
-                # Very conservative source-image motion: max 6% zoom and mild pan.
-                scale = 1.0 + 0.06 * eased
-                direction = -1.0 if idx % 2 else 1.0
-                pan_x = 0.5 + direction * 0.12 * (eased - 0.5)
-                pan_y = 0.5 + 0.06 * math.sin(global_t * math.pi)
+                # Conservative source-image motion: respects preset motion_2d when provided.
+                scale = start_scale + (end_scale - start_scale) * eased
+                if isinstance(pan_x_range, (list, tuple)) and len(pan_x_range) == 2:
+                    pan_x = float(pan_x_range[0]) + (float(pan_x_range[1]) - float(pan_x_range[0])) * eased
+                else:
+                    direction = -1.0 if idx % 2 else 1.0
+                    pan_x = 0.5 + direction * 0.12 * (eased - 0.5)
+
+                if isinstance(pan_y_range, (list, tuple)) and len(pan_y_range) == 2:
+                    pan_y = float(pan_y_range[0]) + (float(pan_y_range[1]) - float(pan_y_range[0])) * eased
+                else:
+                    pan_y = 0.5 + 0.06 * math.sin(global_t * math.pi)
+
                 a = _fit_cover(images[idx], width, height, scale, pan_x, pan_y)
 
                 # Crossfade only near the end of each image segment; no invented geometry.
@@ -225,10 +265,15 @@ def concatenate_timeline(
     progress: ProgressFn,
     cancelled: CancelFn,
     bgm_path: Path | None = None,
+    intro_title: str | None = None,
+    outro_title: str | None = None,
+    width: int = 1280,
+    height: int = 720,
+    fps: int = 30,
 ) -> dict:
     """Concatenate multiple rendered shot MP4s into a single seamless project video.
 
-    Optionally mixes background music (BGM) with soft audio ducking.
+    Optionally prepends an intro card, appends an outro card, and mixes background music (BGM).
     """
     if not shot_video_paths:
         raise ValueError("No shot videos to concatenate")
@@ -237,15 +282,43 @@ def concatenate_timeline(
     output.parent.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory(prefix="cinevideo-timeline-") as tmp:
-        listing = Path(tmp) / "timeline.txt"
+        tmp_dir = Path(tmp)
+        all_clips: list[Path] = []
+        if intro_title:
+            intro_mp4 = _generate_title_card_clip(
+                intro_title,
+                "HỆ THỐNG MÔ PHỎNG HẠ TẦNG GIAO THÔNG (CIVIL 3D / INFRAWORKS)",
+                tmp_dir / "intro_card.mp4",
+                width,
+                height,
+                fps,
+                duration_sec=1.5,
+            )
+            all_clips.append(intro_mp4)
+
+        all_clips.extend(shot_video_paths)
+
+        if outro_title:
+            outro_mp4 = _generate_title_card_clip(
+                outro_title,
+                "HOÀN THÀNH TRÌNH CHIẾU KỸ THUẬT — HỒ SƠ BẢN VẼ GỐC BẢO TOÀN",
+                tmp_dir / "outro_card.mp4",
+                width,
+                height,
+                fps,
+                duration_sec=1.5,
+            )
+            all_clips.append(outro_mp4)
+
+        listing = tmp_dir / "timeline.txt"
         with listing.open("w", encoding="utf-8") as handle:
-            for p in shot_video_paths:
+            for p in all_clips:
                 handle.write(f"file '{_concat_escape(p.resolve())}'\n")
 
         if cancelled():
             raise InterruptedError("cancel requested")
 
-        progress(0.5, f"Assembling timeline from {len(shot_video_paths)} shots")
+        progress(0.5, f"Assembling timeline from {len(all_clips)} clips")
 
         cmd = [
             ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
@@ -270,9 +343,12 @@ def concatenate_timeline(
     return {
         "renderer": "timeline_assembly_v1",
         "shot_count": len(shot_video_paths),
+        "clip_count_with_cards": len(all_clips),
         "output": str(output),
         "qc": qc,
         "bgm_applied": bool(bgm_path and bgm_path.exists()),
+        "intro_applied": bool(intro_title),
+        "outro_applied": bool(outro_title),
     }
 
 

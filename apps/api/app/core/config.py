@@ -17,10 +17,26 @@ class Settings(BaseSettings):
     storage_root: Path = _tmp / "cinevideo-storage"
     ffmpeg_path: str = "ffmpeg"
     colmap_path: str = "colmap"
+    blender_path: str = "blender"
     ns_train_path: str = "ns-train"
     ns_render_path: str = "ns-render"
     ns_train_iterations: int = 7000
     geometry_backend: str = "capability_gated"
+
+    # Optional AI & Reconstruction Modules (never auto-downloaded)
+    models_root: Path = _tmp / "cinevideo-models"
+    wan_model_id: str = "Wan-AI/Wan2.2-TI2V-5B"
+    wan_enabled: bool = False
+    moverse_enabled: bool = False
+    moverse_endpoint: str = "http://localhost:8190"
+    dust3r_enabled: bool = False
+    allow_non_commercial_models: bool = False
+
+    # Upload & Job Management Security
+    max_upload_size_mb: int = 50
+    max_assets_per_project: int = 200
+    job_timeout_sec: int = 1800
+    enable_background_worker: bool = True
 
     # Reconstruction thresholds (SKILL_CANONICAL #56 — starting values, calibrate
     # with the Phase 0 benchmark datasets before trusting them in production).
@@ -50,3 +66,5 @@ class Settings(BaseSettings):
 
 settings = Settings()
 settings.storage_root.mkdir(parents=True, exist_ok=True)
+settings.models_root.mkdir(parents=True, exist_ok=True)
+
