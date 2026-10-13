@@ -12,6 +12,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
+from contextlib import closing
 from pathlib import Path
 
 
@@ -44,11 +45,11 @@ def snapshot_sqlite(database: Path, storage: Path, destination: Path) -> Path:
         db_copy = staging / "database.sqlite"
         source_conn = sqlite3.connect(f"file:{database.resolve()}?mode=ro", uri=True)
         try:
-            with sqlite3.connect(db_copy) as backup_conn:
+            with closing(sqlite3.connect(db_copy)) as backup_conn:
                 source_conn.backup(backup_conn)
         finally:
             source_conn.close()
-        with sqlite3.connect(db_copy) as verify_conn:
+        with closing(sqlite3.connect(db_copy)) as verify_conn:
             integrity = verify_conn.execute("PRAGMA integrity_check").fetchone()[0]
             if integrity != "ok":
                 raise ValueError(f"Invalid SQLite snapshot: {integrity}")
