@@ -192,11 +192,13 @@ def test_failure_modes_corrupt_unsupported_and_duplicate_assets():
     )
     assert bad_ext.status_code == 415
 
-    # 2. Corrupt image bytes uploaded with .jpg extension -> graceful error in /analyze
-    client.post(
+    # 2. Invalid JPG payload rejected at upload, not deferred to analysis.
+    corrupt_upload = client.post(
         f"/api/v1/projects/{pid}/assets",
         files={"file": ("corrupt.jpg", b"not_a_valid_jpeg_stream", "image/jpeg")},
     )
+    assert corrupt_upload.status_code == 422
+    assert corrupt_upload.json()["detail"] == "INVALID_IMAGE_DATA"
     valid_bytes = _create_png_bytes(label="VALID_01")
     client.post(
         f"/api/v1/projects/{pid}/assets",
@@ -213,5 +215,5 @@ def test_failure_modes_corrupt_unsupported_and_duplicate_assets():
     items = analysis.json()["assets"]
     errors = [x for x in items if "error" in x]
     valid_items = [x for x in items if "error" not in x]
-    assert len(errors) == 1
+    assert len(errors) == 0
     assert any(x.get("is_duplicate") is True for x in valid_items)
