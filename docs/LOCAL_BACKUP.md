@@ -17,6 +17,8 @@ python tools/local_backup.py snapshot --database /path/to/cinevideo.db --storage
 
 The directory contains a SQLite backup, a copy of the project storage folder, and a SHA-256 checksum manifest.
 
+The implementation explicitly closes every SQLite connection before publishing the snapshot directory. This is required on Windows, where an open database handle prevents the final atomic directory rename.
+
 ## Verify independently
 
 ```bash

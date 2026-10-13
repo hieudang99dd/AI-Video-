@@ -1694,15 +1694,15 @@
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; font-size:11px; text-align:center;">
               <div style="background:#05080f; padding:6px; border-radius:4px;">
                 <div style="color:var(--text-dim);">Edge Overlap (IoU)</div>
-                <div style="color:#10b981; font-weight:700; font-size:13px; margin-top:2px;" id="qcEdgeIouVal">0.94</div>
+                <div style="color:#10b981; font-weight:700; font-size:13px; margin-top:2px;" id="qcEdgeIouVal">NOT_RUN</div>
               </div>
               <div style="background:#05080f; padding:6px; border-radius:4px;">
                 <div style="color:var(--text-dim);">Bảo toàn kết cấu</div>
-                <div style="color:#38bdf8; font-weight:700; font-size:13px; margin-top:2px;" id="qcSsimVal">0.97</div>
+                <div style="color:#38bdf8; font-weight:700; font-size:13px; margin-top:2px;" id="qcSsimVal">NOT_RUN</div>
               </div>
               <div style="background:#05080f; padding:6px; border-radius:4px;">
                 <div style="color:var(--text-dim);">Ổn định Temporal</div>
-                <div style="color:#a855f7; font-weight:700; font-size:13px; margin-top:2px;" id="qcTemporalVal">0.96</div>
+                <div style="color:#a855f7; font-weight:700; font-size:13px; margin-top:2px;" id="qcTemporalVal">NOT_RUN</div>
               </div>
             </div>
             <div style="font-size:11px; color:var(--text-muted); margin-top:8px;" id="qcRecommendationText">
@@ -3377,38 +3377,37 @@ const GlobalStore = {
     }
     const aiBadge = document.getElementById("studioAIStatusBadge");
     if (aiBadge) {
-      aiBadge.textContent = activeShot && activeShot.aiEnhanced ? "AI_ENHANCED (Đã duyệt)" : "3D Gốc (Chuẩn kỹ thuật)";
+      aiBadge.textContent = "DEMO Canvas 2D — Chưa tái dựng 3D / chưa chạy AI";
     }
   },
 
   runShotAIEnhancementQC() {
-    const edgeIou = (0.91 + Math.random() * 0.06).toFixed(2);
-    const ssim = (0.94 + Math.random() * 0.04).toFixed(2);
-    const temp = (0.93 + Math.random() * 0.05).toFixed(2);
-    if (document.getElementById("qcEdgeIouVal")) document.getElementById("qcEdgeIouVal").textContent = edgeIou;
-    if (document.getElementById("qcSsimVal")) document.getElementById("qcSsimVal").textContent = ssim;
-    if (document.getElementById("qcTemporalVal")) document.getElementById("qcTemporalVal").textContent = temp;
+    // Static GitHub Pages has no render/AI QC backend. NEVER generate pretend scores.
+    for (const id of ["qcEdgeIouVal", "qcSsimVal", "qcTemporalVal"]) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = "NOT_RUN";
+    }
     const rec = document.getElementById("qcRecommendationText");
     if (rec) {
-      rec.innerHTML = `✓ <strong>Đạt chuẩn bảo toàn hình học công trình:</strong> Edge IoU = ${edgeIou} (≥ 0.72), Structural Consistency = ${ssim} (≥ 0.80). Không phát hiện biến dạng tuyến đường hoặc trụ cầu. Bạn có thể bấm <strong>Chấp nhận bản AI</strong> hoặc <strong>Quay về bản 3D Gốc</strong>.`;
+      rec.textContent = "Chưa kiểm định AI: bản GitHub Pages chỉ là demo Canvas 2D, không có output Wan2.2 hoặc video 3D thật để so sánh. Hãy dùng backend Studio sau khi inference và QC được nghiệm thu.";
     }
   },
 
   decideShotAIQC(decision) {
+    // The static Pages demo cannot verify/approve any AI result.
     if (!this.state.shots || this.state.selectedShotIndex === null) {
-      alert("Vui lòng chọn hoặc tạo ít nhất 1 phân cảnh trước khi áp dụng QC.");
+      alert("Vui lòng chọn phân cảnh.");
       return;
     }
     const shot = this.state.shots[this.state.selectedShotIndex];
-    if (decision === "approve") {
-      shot.aiEnhanced = true;
-      shot.aiDisclaimer = "Hình ảnh đã qua xử lý hậu kỳ AI (AI_ENHANCED), không thay thế hồ sơ thiết kế kỹ thuật gốc.";
-      alert(`✓ Đã chấp nhận bản hậu kỳ AI (AI_ENHANCED) cho phân cảnh #${shot.num} "${shot.name}".`);
-    } else {
-      shot.aiEnhanced = false;
-      shot.aiDisclaimer = null;
-      alert(`↺ Đã từ chối bản AI và khôi phục bản 3D Render gốc cho phân cảnh #${shot.num} "${shot.name}".`);
+    if (decision === "approve" || decision === "accepted") {
+      this.runShotAIEnhancementQC();
+      alert("Không có kết quả AI/QC thực để phê duyệt. Hãy kết nối backend inference khi được triển khai.");
+      return;
     }
+    shot.aiEnhanced = false;
+    shot.aiDisclaimer = null;
+    this.runShotAIEnhancementQC();
     this.run3DPointCloudSimulation();
     this.populatePropertiesCol();
     this.drawEditorFrame(this.state.playback.currentTime);

@@ -58,6 +58,17 @@ def test_gpu_flag_cannot_make_stub_ready(monkeypatch):
     assert flags["moverse"]["available"] is False
 
 
+@pytest.mark.parametrize("page", ["index.html", "docs/index.html"])
+def test_static_pages_never_fabricate_or_approve_ai_qc(page: str):
+    html = Path(page).read_text(encoding="utf-8")
+    assert 'id="qcEdgeIouVal">NOT_RUN<' in html
+    assert 'id="qcSsimVal">NOT_RUN<' in html
+    assert 'id="qcTemporalVal">NOT_RUN<' in html
+    assert "const edgeIou = (0.91 + Math.random()" not in html
+    assert "shot.aiEnhanced = true" not in html
+    assert "DEMO Canvas 2D — Chưa tái dựng 3D / chưa chạy AI" in html
+
+
 def test_storage_rejects_oversize_atomically(tmp_path: Path):
     store = LocalStorage(tmp_path)
     with pytest.raises(ValueError, match="UPLOAD_TOO_LARGE"):

@@ -12,7 +12,7 @@
 
 | Phase | State | Evidence / PR | Critical blocker |
 |---|---|---|---|
-| P00 | IN_PROGRESS | [#1](https://github.com/hieudang99dd/AI-Video-/issues/1), backup branch, CI workflow on feature branch | 143 pytest, Next build, Docker smoke PASS on #38338254080; DB/storage backup+restore still pending |
+| P00 | IN_PROGRESS | [#1](https://github.com/hieudang99dd/AI-Video-/issues/1), backup branch, CI workflow, local Windows report | 148 pytest PASS locally; representative restore and CPU MP4 PASS; deployment DB/storage restore still pending |
 | P01 | IN_PROGRESS | [#2](https://github.com/hieudang99dd/AI-Video-/issues/2), P0 code fixes staged on feature branch | per-user/tenant auth and live AI/QC verification still missing |
 | P02 | NOT_STARTED | — | Docker packaging and GPU container validation |
 | P03 | NOT_STARTED | — | atomic jobs, dedup, migration |
@@ -33,8 +33,8 @@ Valid values: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `GATE_PASSED`, `REOPENED`
 - Camera trajectory, quaternion interpolation, COLMAP repository parser, geometry CLI adapters, FFmpeg compositor and test files exist.
 - Current safe source-image render path uses pan/zoom/crossfade; novel-view 3D is **not yet hardware-verified**.
 - Current Blender worker exports script but uses `execute_if_available=False` in default render flow.
-- Current Wan2.2 adapter copies source video; no verified diffusion inference.
-- Current public Pages QC uses random metrics; backend AI QC compares source images against themselves in relevant route. **Both must be fixed before enabling any pass labeling.**
+- Baseline Wan2.2 adapter copied source video. The PR branch now fails closed; no verified diffusion inference exists.
+- Baseline public Pages QC used random metrics and backend AI QC compared invalid inputs. The PR branch now fails closed, and local follow-up covers both static Pages entrypoints; real two-video AI QC remains unimplemented.
 - Backend currently lacks project-scoped authentication/authorization.
 
 ## Immediate execution checklist
@@ -77,3 +77,16 @@ For each merged PR add: date, HEAD SHA, issue IDs, phase, tests with exact comma
 - `tests/unit/test_local_backup.py` proves a synthetic SQLite row and stored file can be restored, and rejects tampering/overwriting.
 - [Run #38338530516](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338530516) verified full test suite **146 PASS, 3 warnings**, Next.js build PASS, Docker API image and import smoke PASS.
 - **Production Postgres/storage snapshot not performed.** Must use `pg_dump`/operator-managed backup + rehearsal. **G00 remains open.**
+
+## Local Windows verification — 2026-10-13 ICT
+
+- Worktree branch: `refactor/p00-local-verification`, based on PR #3 head `130f42b239f33c09e00fe9e87cf1810632017c7e`; original dirty checkout was not modified. Stacked [draft PR #4](https://github.com/hieudang99dd/AI-Video-/pull/4) is open.
+- Fixed Windows snapshot publication by explicitly closing SQLite backup/integrity-check handles before `os.replace`.
+- Fixed BUG-001 coverage gap in deployed `docs/index.html`; both static entrypoints now initialize QC as `NOT_RUN`, refuse AI approval, and are protected by regression tests.
+- Local tests: `148 passed, 3 warnings in 5.98s`; focused P00/P01 tests: `13 passed, 3 warnings in 1.05s`.
+- [CI run #38343073179](https://github.com/hieudang99dd/AI-Video-/actions/runs/38343073179) at implementation/evidence commit `0ea34b9376dcde681407f3c2503e7c30e2d71eab` completed successfully for Python tests, Next.js build and API container build/smoke.
+- Representative CLI snapshot/verify/restore passed with identical source/restored asset SHA-256. This does **not** replace a deployment recovery drill.
+- Real CPU artifact outside Git: `../artifacts/p00-local-20261013/single_image_5s.mp4`, H.264 1280×720 at 24 fps, 5.04 s, SHA-256 `61acccbb530d75e111b59aa028d0533490b9421aaa09d407895ce875cd6b295f`; full FFmpeg decode and OpenCV first-frame decode passed. Explicit `ffprobe` is `NOT_RUN` because it is not installed.
+- Environment report: `benchmarks/reports/environment_2026-10-13.md`.
+- Missing locally: Node/npm, Docker, ffprobe, Blender, COLMAP, Nerfstudio and PyTorch/CUDA runtime. NVIDIA hardware is present (RTX 5070 Ti 16 GB), but no GPU/3D/AI path is marked verified.
+- **G00 remains open** with `BLOCKED_DEPLOYMENT_DATA` and missing local build/tool evidence. G01 also remains open for tenant authorization and real independent AI video QC.
