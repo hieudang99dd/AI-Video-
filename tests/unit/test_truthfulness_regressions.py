@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from app.main import app
+from app.db.session import engine, ensure_sqlite_schema
 from app.services.ai_adapter import Wan22Adapter
 from app.services.ai_qc import evaluate_ai_enhancement_qc
 from app.services.capabilities import get_capabilities
@@ -81,6 +82,7 @@ def test_storage_accepts_valid_png(tmp_path: Path):
 
 
 def test_ai_endpoint_never_marks_missing_render_complete():
+    ensure_sqlite_schema(engine)
     client = TestClient(app)
     project = client.post("/api/v1/projects", json={"name": "truthfulness-regression"}).json()
     shot = client.post(
