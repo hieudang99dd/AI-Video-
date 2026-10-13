@@ -74,43 +74,57 @@ def evaluate_ai_enhancement_qc(
     - Bridge pier / retaining wall distortion (``bridge_edge_distortion``)
     - Frame-to-frame luminance flicker (``temporal_flicker_detected``)
     """
-    if original_frames and ai_frames and len(original_frames) > 0 and len(ai_frames) > 0:
-        pairs = list(zip(original_frames, ai_frames))[:10]
-        edge_scores: list[float] = []
-        struct_scores: list[float] = []
-        lum_means: list[float] = []
+    if (
+        not original_frames
+        or not ai_frames
+        or len(original_frames) != len(ai_frames)
+        or not all(Path(p).is_file() for p in [*original_frames, *ai_frames])
+    ):
+        return {
+            "qc_passed": False,
+            "status": "INCONCLUSIVE",
+            "edge_iou_score": None,
+            "structural_consistency_score": None,
+            "temporal_stability_score": None,
+            "thresholds": {
+                "min_edge_iou": edge_iou_threshold,
+                "min_structural_consistency": structural_threshold,
+                "min_temporal_stability": 0.78,
+            },
+            "warnings": ["Missing or unmatched source/enhanced frame pairs; quality was not measured."],
+            "recommendation": "do_not_accept",
+            "label": "AI_QC_NOT_RUN",
+            "disclaimer": AI_ENHANCED_DISCLAIMER,
+        }
 
-        for orig_p, ai_p in pairs:
-            with Image.open(orig_p) as oi, Image.open(ai_p) as ai:
-                metrics = compare_frame_pair(oi, ai)
-                edge_scores.append(metrics["edge_iou_score"])
-                struct_scores.append(metrics["structural_consistency_score"])
-                lum_means.append(float(np.asarray(ai.convert("L"), dtype=np.float32).mean() / 255.0))
-
-        mean_edge_iou = round(float(np.mean(edge_scores)), 4)
-        mean_struct = round(float(np.mean(struct_scores)), 4)
-        if len(lum_means) >= 2:
-            lum_diffs = np.abs(np.diff(lum_means))
-            temporal_stability = round(max(0.0, 1.0 - float(lum_diffs.mean() * 4.0)), 4)
-        else:
-            temporal_stability = 0.96
+    pairs = list(zip(original_frames, ai_frames))[:10]
+    edge_scores: list[float] = []
+    struct_scores: list[float] = []
+    lum_means: list[float] = []
+    for orig_p, ai_p in pairs:
+        with Image.open(orig_p) as oi, Image.open(ai_p) as ai:
+            metrics = compare_frame_pair(oi, ai)
+            edge_scores.append(metrics["edge_iou_score"])
+            struct_scores.append(metrics["structural_consistency_score"])
+            lum_means.append(float(np.asarray(ai.convert("L"), dtype=np.float32).mean() / 255.0))
+    mean_edge_iou = round(float(np.mean(edge_scores)), 4)
+    mean_struct = round(float(np.mean(struct_scores)), 4)
+    if len(lum_means) >= 2:
+        temporal_stability = round(max(0.0, 1.0 - float(np.abs(np.diff(lum_means)).mean() * 4.0)), 4)
     else:
-        # Default baseline when comparing identical or controlled-grade video streams
-        mean_edge_iou = 0.92
-        mean_struct = 0.95
-        temporal_stability = 0.96
-
+        temporal_stability = None
     warnings: list[str] = []
     if mean_edge_iou < edge_iou_threshold:
         warnings.append("bridge_edge_distortion: Phát hiện biến dạng cạnh kết cấu công trình (cầu/tường chắn/taluy).")
     if mean_struct < structural_threshold:
         warnings.append("road_geometry_drift: Phát hiện sai lệch hình học tim đường hoặc mặt cắt ngang so với bản render 3D gốc.")
-    if temporal_stability < 0.78:
+    if temporal_stability is not None and temporal_stability < 0.78:
         warnings.append("temporal_flicker_detected: Phát hiện nhấp nháy ánh sáng (flicker) giữa các frame liên tiếp.")
 
-    qc_passed = len(warnings) == 0
+    qc_passed = len(warnings) == 0 and temporal_stability is not None
     return {
         "qc_passed": qc_passed,
+        "status": "PASSED" if qc_passed else ("INCONCLUSIVE" if temporal_stability is None else "FAILED"),
         "edge_iou_score": mean_edge_iou,
         "structural_consistency_score": mean_struct,
         "temporal_stability_score": temporal_stability,
@@ -120,7 +134,7 @@ def evaluate_ai_enhancement_qc(
             "min_temporal_stability": 0.78,
         },
         "warnings": warnings,
-        "recommendation": "accept" if qc_passed else "reject_and_revert_to_3d",
+        "recommendation": "accept" if qc_passed else ("do_not_accept" if temporal_stability is None else "reject_and_revert_to_3d"),
         "label": "AI_ENHANCED",
         "disclaimer": AI_ENHANCED_DISCLAIMER,
     }
