@@ -1,76 +1,38 @@
-# Image-to-Cinematic-Video
+# AI-Video — Infrastructure Image-to-Video Studio
 
-Phase 0/1 vertical slice built from `SKILL_CANONICAL.md`.
+> **Refactor in progress.** This repository has a working code foundation for project/assets/shot management and a CPU source-image video pipeline. **Do not interpret camera preset/script exports, static GitHub Pages demos, or AI adapter availability as proof of live 3D camera rendering or generative AI inference.** GPU geometry pipeline and AI video require hardware-level acceptance tests.
 
-## What works now
+## Canonical delivery plan
 
-- Web UI (Next.js) for project creation, upload, analysis, shot creation and render jobs.
-- FastAPI API with persistent projects/assets/shots/render jobs.
-- Worker abstraction: render work never runs inside the HTTP request.
-- Local dev queue works with Redis when available, otherwise the worker polls the DB.
-- Image QA: dimensions, brightness, sharpness proxy.
-- Safe CPU video fallback (`2.5d_lite` / transition) using source images + gentle crop/pan/zoom only.
-- FFmpeg H.264 MP4 encoding.
-- Capability endpoint that reports COLMAP / Geometry availability instead of faking it.
-- Camera math package with easing, quaternion normalization and SLERP.
-- Docker Compose for web, API, worker, PostgreSQL and Redis.
+- **[MASTER_REFACTOR_PLAN.md](MASTER_REFACTOR_PLAN.md)** — single source of truth: 30 audited issues, 12 execution phases (P00–P11), dependencies, target repo architecture, gates, acceptance datasets, licensing, rollback, and agent instructions.
+- [SKILL.md](SKILL.md) — agent entrypoint linking the canonical plan.
+- [PROJECT_STATUS.md](PROJECT_STATUS.md) — implementation/evidence ledger (historical claims are not fresh independent verification).
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — currently implemented architecture (may lag refactor target).
+- [INSTALL.md](INSTALL.md), [GPU_SETUP.md](GPU_SETUP.md), [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — existing installation references; commands must be revalidated under Phase 00/02.
 
-## Intentionally not faked
+## Present architecture (audit baseline)
 
-`Geometry Mode` (COLMAP + 3DGS) is **not pretended to work** when dependencies/GPU are absent. The API exposes capabilities and a geometry render request fails with an actionable message. This follows the canonical skill: fallback instead of hallucination.
+- Next.js app in `apps/web`, FastAPI in `apps/api`, SQLAlchemy DB, RenderJob/worker, optional Redis and Docker Compose.
+- Source-image 2D/2.5D-safe FFmpeg motion renderer and scene/timeline logic; there are unit and integration tests in `tests/`.
+- Camera math/presets/trajectory JSON and script export exist; current default worker branch **does not execute Blender headless**.
+- COLMAP and Nerfstudio CLI integration code exists but is **not GPU-live verified** for Civil 3D/InfraWorks datasets.
+- Wan2.2/MoVerse adapter stubs **do not provide verified generative inference** in current source; do not label their outputs AI-generated without proof.
+- Root `index.html` on GitHub Pages is a standalone Canvas-based frontend/demo, **not** the same as a running backend-connected 3D Studio.
 
-## Quick start — Docker
+## Local development (legacy commands; revalidate in P00/P02)
+
+CPU Docker configuration under `docker-compose.yml` was part of the earlier implementation, but the repository audit found packaging/build concerns. **Do not claim the following commands are verified for current HEAD until clean builds pass.**
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-Open:
+- Next.js: http://localhost:3000
+- FastAPI docs: http://localhost:8000/docs
 
-- Web: http://localhost:3000
-- API docs: http://localhost:8000/docs
+## Agent kickoff
 
-## Quick start — API/worker without Docker
+> Read `MASTER_REFACTOR_PLAN.md`, current Git HEAD, `PROJECT_STATUS.md`, and baseline source; start at the first unpassed phase gate. Write reproducing tests, implement the actual changes, execute available checks, attach logs/artifacts, and update status with evidence. Do not skip security/truthfulness P0 issues or fake geometry/AI readiness.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -e './apps/api[dev]'
-export DATABASE_URL=sqlite:////tmp/cinevideo.db
-export STORAGE_ROOT=/tmp/cinevideo-storage
-uvicorn app.main:app --app-dir apps/api --reload
-```
-
-In a second terminal:
-
-```bash
-export DATABASE_URL=sqlite:////tmp/cinevideo.db
-export STORAGE_ROOT=/tmp/cinevideo-storage
-python -m app.workers.render_worker --app-dir apps/api
-```
-
-For local source execution, simpler:
-
-```bash
-PYTHONPATH=apps/api python -m app.workers.render_worker
-```
-
-## Core API flow
-
-1. `POST /api/v1/projects`
-2. `POST /api/v1/projects/{project_id}/assets`
-3. `POST /api/v1/projects/{project_id}/analyze`
-4. `POST /api/v1/projects/{project_id}/shots`
-5. `POST /api/v1/shots/{shot_id}/preview`
-6. poll `GET /api/v1/render-jobs/{job_id}`
-7. `GET /api/v1/render-jobs/{job_id}/download`
-
-## Next milestone
-
-Phase 0 geometry spike:
-
-- integrate COLMAP/PyCOLMAP behind `GeometryBackend`;
-- export registered cameras + sparse scene;
-- add 3DGS backend behind the same render contract;
-- validate 5-second geometry shot on the benchmark datasets before Hybrid GPU work begins.
+Current next step: **P00 baseline and backup → P01 security/truthfulness → P02 reproducible build**. Do not market as production-ready until gates G00–G11 have been verified as applicable.
