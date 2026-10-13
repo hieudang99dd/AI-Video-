@@ -6,7 +6,7 @@
 
 ## Current phase
 
-**P00 — IN_PROGRESS** (baseline source inspected, backup branch created, and [CI run #38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080) completed: **143 Python tests PASSED (3 warnings), Next.js build PASSED, API Docker build + import smoke PASSED** at commit `1f11d81c4ac9eec959252d074482c5e485c68ecf`). Deployment DB/storage backup + restore remains inaccessible. **G00 not passed.** P01 fixes staged for review but **G01 not passed**.
+**P00 — IN_PROGRESS** (baseline source inspected, backup branch created, and [CI run #38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080) completed: **143 Python tests PASSED (3 warnings), Next.js build PASSED, API Docker build + import smoke PASSED** at commit `1f11d81c4ac9eec959252d074482c5e485c68ecf`). Deployment DB/storage backup + restore remains inaccessible. **G00 not passed** because actual deployment DB/storage recovery was not tested. **Local-only backup tool** at `tools/local_backup.py` + [run #38338530516](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338530516) verified with synthetic data. P01 fixes staged for review; **G01 not passed**.
 
 ## Phase tracker (complete the evidence before any GATE_PASSED)
 
@@ -39,7 +39,7 @@ Valid values: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `GATE_PASSED`, `REOPENED`
 
 ## Immediate execution checklist
 
-- [x] P00-01 create `backup/pre-refactor-20261013` branch from baseline commit `a009d193`\n- [ ] P00-01b backup and **restore test** for deployment DB/storage (cannot access from GitHub only)
+- [x] P00-01 create `backup/pre-refactor-20261013` branch from baseline commit `a009d193`\n- [x] P00-01b local SQLite+storage backup/verify/restore tool written + synthetic-data regression test (`tools/local_backup.py`, `tests/unit/test_local_backup.py`, `docs/LOCAL_BACKUP.md`)\n- [ ] P00-01c actual **deployment** DB/storage backup and restore test (cannot access from GitHub only)
 - [x] P00-02a add CI workflow on feature branch for `pytest`, Next build and API Docker clean build\n- [x] P00-02b verify [GitHub Actions run #38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080): `python -m pytest -q --disable-warnings --maxfail=1` → **143 passed, 3 warnings in 2.98s**; Next.js `npm run build` PASS; API image Docker build + import PASS (verified GitHub Actions job conclusions)
 - [x] P00-03 inspect code tree + core modules at baseline\n- [ ] P00-03b inventory deployment datasets and backup artifacts
 - [x] P00-04 create [P00 issue #1](https://github.com/hieudang99dd/AI-Video-/issues/1) and [P01 issue #2](https://github.com/hieudang99dd/AI-Video-/issues/2)\n- [ ] P00-04b create/assign remaining issue tickets for P02–P11
@@ -69,4 +69,11 @@ For each merged PR add: date, HEAD SHA, issue IDs, phase, tests with exact comma
 |---|---|---|---|---|---|
 | `1f11d81c4ac9eec959252d074482c5e485c68ecf` | [38338254080](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338254080) | **143 PASS**, 3 warnings | **PASS** | **PASS** (build + Python import) | Full user DB/storage backup + restore; auth tenant model; GPU/live reconstruction/AI, CPU E2E on real Civil3D datasets |
 
-These test results apply to the implementation SHA shown in the table; a later documentation-only commit must not be represented as independently tested until its CI completes. Phase gates remain open.
+| `1a0fa9827ea4ed80bdcd11e9c33e4503889c8da2` | [38338530516](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338530516) | **146 PASS**, 3 warnings | **PASS** | **PASS** | local snapshot+restore synthetic test PASS; real deployment backup/restore still pending |\n\nThese test results apply to the implementation SHA shown in the table; a later documentation-only commit must not be represented as independently tested until its CI completes. Phase gates remain open.
+
+## Local backup evidence (new)
+
+- `tools/local_backup.py` implements SQLite online snapshot, file SHA-256 manifest, integrity validation and restore to new paths only.
+- `tests/unit/test_local_backup.py` proves a synthetic SQLite row and stored file can be restored, and rejects tampering/overwriting.
+- [Run #38338530516](https://github.com/hieudang99dd/AI-Video-/actions/runs/38338530516) verified full test suite **146 PASS, 3 warnings**, Next.js build PASS, Docker API image and import smoke PASS.
+- **Production Postgres/storage snapshot not performed.** Must use `pg_dump`/operator-managed backup + rehearsal. **G00 remains open.**
